@@ -177,16 +177,46 @@ const SOUND_KEY='bylow-point-sounds-enabled-v1';
 let soundsEnabled=localStorage.getItem(SOUND_KEY)!=='false',audioContext;
 function refreshSoundToggle(){const b=$('sound-toggle');b.textContent=soundsEnabled?'🔊 Sounds on':'🔇 Sounds off';b.setAttribute('aria-pressed',String(soundsEnabled));}
 $('sound-toggle').onclick=()=>{soundsEnabled=!soundsEnabled;localStorage.setItem(SOUND_KEY,String(soundsEnabled));refreshSoundToggle();};refreshSoundToggle();
-function playPointSound(kind){
+const soundTestButton=document.createElement('button');
+soundTestButton.type='button';soundTestButton.textContent='♪ Test sound';
+soundTestButton.title='Play a test tone';
+$('sound-toggle').insertAdjacentElement('afterend',soundTestButton);
+soundTestButton.addEventListener('click',()=>{if(!soundsEnabled){soundsEnabled=true;localStorage.setItem(SOUND_KEY,'true');refreshSoundToggle();}playPointSound('five');});
+
+async function playPointSound(kind){
  if(!soundsEnabled)return;
  try{
   const AudioCtx=window.AudioContext||window.webkitAudioContext;if(!AudioCtx)return;
-  audioContext=audioContext||new AudioCtx();if(audioContext.state==='suspended')audioContext.resume().catch(()=>{});
-  const now=audioContext.currentTime+0.015;
-  const notes={one:[[740,0,.12]],two:[[650,0,.1],[880,.12,.16]],five:[[587,0,.10],[784,.12,.10],[988,.24,.12],[1175,.39,.26]],minus:[[440,0,.12],[330,.14,.18]],classPlus:[[523,0,.12],[659,.14,.12],[784,.28,.12],[1047,.43,.31]],classMinus:[[440,0,.16],[370,.18,.17],[294,.38,.29]]}[kind]||[];
-  for(const [freq,offset,duration] of notes){const oscillator=audioContext.createOscillator(),gain=audioContext.createGain();oscillator.type=kind==='classMinus'?'triangle':'sine';oscillator.frequency.setValueAtTime(freq,now+offset);gain.gain.setValueAtTime(.0001,now+offset);gain.gain.exponentialRampToValueAtTime(kind.startsWith('class')?.105:.075,now+offset+.015);gain.gain.exponentialRampToValueAtTime(.0001,now+offset+duration);oscillator.connect(gain);gain.connect(audioContext.destination);oscillator.start(now+offset);oscillator.stop(now+offset+duration+.025);}
- }catch(e){/* sound is optional; points always work */}
+  audioContext=audioContext||new AudioCtx();
+  if(audioContext.state!=='running')await audioContext.resume();
+  if(audioContext.state!=='running')return;
+  const now=audioContext.currentTime+.035;
+  const notes={one:[[740,0,.16]],two:[[650,0,.15],[880,.17,.20]],five:[[587,0,.14],[784,.16,.14],[988,.32,.16],[1175,.51,.32]],minus:[[440,0,.16],[330,.19,.22]],classPlus:[[523,0,.16],[659,.18,.16],[784,.36,.16],[1047,.55,.40]],classMinus:[[440,0,.20],[370,.23,.20],[294,.46,.36]]}[kind]||[];
+  for(const [freq,offset,duration] of notes){
+   const oscillator=audioContext.createOscillator(),gain=audioContext.createGain();
+   oscillator.type=kind==='classMinus'?'triangle':'sine';
+   oscillator.frequency.setValueAtTime(freq,now+offset);
+   gain.gain.setValueAtTime(.0001,now+offset);
+   gain.gain.exponentialRampToValueAtTime(kind.startsWith('class')?.22:.18,now+offset+.025);
+   gain.gain.exponentialRampToValueAtTime(.0001,now+offset+duration);
+   oscillator.connect(gain);gain.connect(audioContext.destination);
+   oscillator.start(now+offset);oscillator.stop(now+offset+duration+.03);
+  }
+ }catch(e){console.warn('Sound unavailable:',e);}
 }
+// Unlock iPad/Safari audio on a real touch or click, before any point action.
+function unlockPointAudio(){
+ if(!soundsEnabled)return;
+ try{
+  const AudioCtx=window.AudioContext||window.webkitAudioContext;
+  if(!AudioCtx)return;
+  audioContext=audioContext||new AudioCtx();
+  if(audioContext.state!=='running')audioContext.resume().catch(()=>{});
+ }catch(e){}
+}
+document.addEventListener('pointerdown',unlockPointAudio,{passive:true});
+document.addEventListener('touchstart',unlockPointAudio,{passive:true});
+
 function draw(){const max=Math.max(10,...Object.values(scores));$('board').replaceChildren(...[...students].filter(n=>n.toLocaleLowerCase().includes(($('point-search').value||'').trim().toLocaleLowerCase())).sort(sortMode==='alphabetical'?(a,b)=>a.localeCompare(b):sortMode==='classnumber'?(a,b)=>classNumbers[a]-classNumbers[b]||a.localeCompare(b):(a,b)=>scores[b]-scores[a]||a.localeCompare(b)).map(name=>{const card=document.createElement('section');card.className='student';card.dataset.student=name;const head=document.createElement('div');head.className='student-head';const title=document.createElement('span');title.className='student-name';title.textContent=(sortMode==='classnumber'?'#'+classNumbers[name]+' · ':'')+name;title.classList.add('student-profile-link');title.title='View missing assignments for '+name;title.tabIndex=0;title.setAttribute('role','button');const openProfile=()=>{switchTab('missing');$('assign-student-filter').value=name;renderMissing();$('assign-student-filter').scrollIntoView({behavior:'smooth',block:'center'});};title.onclick=openProfile;title.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openProfile();}};const score=document.createElement('span');score.className='score';score.textContent=scores[name]+' pts';score.style.color=scores[name]<0?'#ff858f':'';head.append(title,score);const track=document.createElement('div');track.className='track';const fill=document.createElement('div');fill.className='fill';fill.style.width=(100*Math.max(0,scores[name])/max)+'%';track.append(fill);const buttons=document.createElement('div');buttons.className='point-actions';for(const delta of [1,2,5,-1]){const b=document.createElement('button');b.textContent=(delta>0?'+':'')+delta;b.setAttribute('aria-label',`${delta>0?'Add':'Subtract'} ${Math.abs(delta)} points ${name}`);b.addEventListener('click',()=>{const next=scores[name]+delta;if(next===scores[name])return;history.push({...scores});if(history.length>100)history.shift();pointChangeReason='Manual adjustment';scores[name]=next;save();draw();playPointSound(delta===1?'one':delta===2?'two':delta===5?'five':'minus');celebrate(name,delta);});buttons.append(b);}card.append(head,track,buttons);return card;}));$('undo').disabled=!history.length;}
 
 function setSortMode(mode){sortMode=mode;try{localStorage.setItem(SORT_KEY,mode);}catch(e){}for(const key of ['leaderboard','alphabetical','classnumber']){const btn=$('sort-'+key);btn.classList.toggle('active',key===mode);btn.setAttribute('aria-pressed',String(key===mode));}draw();}
