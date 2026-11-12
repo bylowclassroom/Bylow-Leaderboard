@@ -354,7 +354,7 @@ let rewards=[
  {name:'Rearrange Day',cost:150,description:'What if you controlled the order of the school day?'},
  {name:'???',cost:200,description:'No hints. No spoilers. Someone will have to find out.',secret:true}
 ];
-const REWARDS_KEY='bylow-classroom-rewards-v1';try{const saved=JSON.parse(localStorage.getItem(REWARDS_KEY)||'null');if(Array.isArray(saved))rewards=saved.filter(r=>r&&typeof r.name==='string'&&Number.isFinite(r.cost)&&r.cost>0&&typeof r.description==='string').map(r=>({name:r.name,cost:r.cost,description:r.description,secret:!!r.secret}));}catch(e){}
+const REWARDS_KEY='bylow-classroom-rewards-v1';try{const saved=JSON.parse(localStorage.getItem(REWARDS_KEY)||'null');if(Array.isArray(saved))rewards=saved.filter(r=>r&&typeof r.name==='string'&&Number.isFinite(r.cost)&&r.cost>0&&typeof r.description==='string').map(r=>({id:(typeof r.id==='string'&&r.id)?r.id:undefined,name:r.name,cost:r.cost,description:r.description,secret:!!r.secret}));}catch(e){}
 // Reward savings: reserved points live outside the spendable scoreboard balance.
 // Each reward receives a stable id, so edits and reorderings do not lose deposits.
 const SAVINGS_KEY='bylow-reward-savings-v1';let rewardSavings={};
@@ -366,6 +366,22 @@ function savingsFor(student,reward){return Math.max(0,Math.floor(Number(rewardSa
 function updateSavings(student,reward,amount){const old=savingsFor(student,reward);if(amount===old)return true;const next=structuredClone(rewardSavings);if(!next[student])next[student]={};if(amount>0)next[student][reward.id]=amount;else delete next[student][reward.id];const previous=rewardSavings;rewardSavings=next;if(!saveSavings()){rewardSavings=previous;return false;}return true;}
 function resetSavingsFromData(data){rewardSavings={};if(data&&typeof data==='object'&&!Array.isArray(data)){for(const [student,entries] of Object.entries(data)){if(!students.includes(student)||!entries||typeof entries!=='object')continue;rewardSavings[student]={};for(const [id,v] of Object.entries(entries)){if(rewards.some(r=>r.id===id)&&Number.isSafeInteger(v)&&v>0)rewardSavings[student][id]=v;}}}saveSavings();}
 ensureRewardIds();
+// Earlier versions regenerated reward IDs on reload. Keep unmatched deposits intact
+// and warn the teacher instead of silently discarding potentially recoverable savings.
+function warnOrphanedSavings(){
+ const ids=new Set(rewards.map(r=>r.id));let orphanCount=0,orphanTotal=0;
+ for(const entries of Object.values(rewardSavings)){
+  if(!entries||typeof entries!=='object')continue;
+  for(const [id,amount] of Object.entries(entries))if(!ids.has(id)&&Number(amount)>0){orphanCount++;orphanTotal+=Number(amount);}
+ }
+ if(orphanCount){
+  const note=document.createElement('div');note.style.cssText='position:fixed;bottom:12px;left:12px;right:12px;z-index:99999;background:#fff4d6;color:#503500;border:2px solid #bd8a20;border-radius:12px;padding:12px;font:600 14px system-ui;box-shadow:0 3px 16px #0003';
+  note.textContent='Savings recovery needed: '+orphanTotal+' deposited points from an older version are still stored but are not linked to a current reward. Do not reset or clear browser data. Export a backup and contact support to recover them.';
+  const close=document.createElement('button');close.textContent='Dismiss';close.style.marginLeft='12px';close.onclick=()=>note.remove();note.append(close);
+  document.addEventListener('DOMContentLoaded',()=>document.body.append(note),{once:true});
+ }
+}
+warnOrphanedSavings();
 function updateStudentSelectors(){for(const id of ['shop-student','assign-student-filter']){const el=$(id),current=el.value;el.replaceChildren();for(const name of students){const option=document.createElement('option');option.value=name;option.textContent=name;el.append(option);}if(students.includes(current))el.value=current;}}
 updateStudentSelectors();
 function renderShop(){
