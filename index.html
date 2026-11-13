@@ -456,7 +456,7 @@ function interestWeekKey(date=new Date()){
  const year=d.getUTCFullYear(),start=new Date(Date.UTC(year,0,1));
  return year+'-W'+String(Math.ceil((((d-start)/86400000)+1)/7)).padStart(2,'0');
 }
-function interestFor(balance,rate){if(balance<25||rate<=0)return 0;return Math.max(1,Math.floor(balance*rate/100));}
+function interestFor(balance,rate){if(balance<5||rate<=0)return 0;return Math.max(1,Math.floor(balance*rate/100));}
 function payWeeklyInterest(){
  const week=interestWeekKey();if(interestState.paidWeeks[week])return alert('Interest has already been paid for '+week+'.');
  const rate=interestState.rate,entries=students.map(student=>({student,balance:bankFor(student)})).map(e=>({...e,amount:interestFor(e.balance,rate)})).filter(e=>e.amount>0);
@@ -476,7 +476,7 @@ function renderInterestPanel(){
  const panel=document.createElement('div');panel.className='interest-panel';
  const heading=document.createElement('h4');heading.textContent='📈 Bank of Bylow · Weekly Interest';
  const week=interestWeekKey(),already=!!interestState.paidWeeks[week];
- const expl=document.createElement('p');expl.textContent='Teacher-controlled payday (you can pay once per calendar week, preferably Friday). Interest is compounded on general savings only, rounded down to whole points; accounts with at least 25 points earn a minimum of 1 point when the rate is above zero.';
+ const expl=document.createElement('p');expl.textContent='Teacher-controlled payday (you can pay once per calendar week, preferably Friday). Interest is compounded on general savings only, rounded down to whole points; accounts with at least 5 points earn a minimum of 1 point when the rate is above zero.';
  const controls=document.createElement('div');controls.className='interest-controls';
  const rateLabel=document.createElement('label');rateLabel.textContent='Weekly rate (%)';
  const rateInput=document.createElement('input');rateInput.type='number';rateInput.min='0';rateInput.max='10';rateInput.step='0.5';rateInput.value=String(interestState.rate);rateInput.setAttribute('aria-label','Weekly interest rate percent');
