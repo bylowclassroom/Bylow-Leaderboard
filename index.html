@@ -476,7 +476,7 @@ function payWeeklyInterest(force=false){
 function renderInterestPanel(){
  const parent=$('general-bank');if(!parent)return;
  const panel=document.createElement('div');panel.className='interest-panel';
- const heading=document.createElement('h4');heading.textContent='📈 Bank of Bylow · Weekly Interest';
+ const heading=document.createElement('h4');heading.textContent='📈 Bank of Bylow · Weekly Interest · TEST OVERRIDE v2';
  const week=interestWeekKey(),already=!!interestState.paidWeeks[week];
  const expl=document.createElement('p');expl.textContent='Teacher-controlled payday (you can pay once per calendar week, preferably Friday). Interest is compounded on general savings only, rounded down to whole points; accounts with at least 5 points earn a minimum of 1 point when the rate is above zero.';
  const controls=document.createElement('div');controls.className='interest-controls';
@@ -485,9 +485,9 @@ function renderInterestPanel(){
  const setRate=document.createElement('button');setRate.textContent='Save rate';setRate.onclick=()=>{const rate=Number(rateInput.value);if(!Number.isFinite(rate)||rate<0||rate>10||Math.round(rate*2)!==rate*2)return alert('Choose 0–10% in half-percent increments.');if(saveInterestState({...interestState,rate})){renderShop();show('Weekly interest rate set to '+rate+'%.');}};
  controls.append(rateLabel,rateInput,setRate);
  const status=document.createElement('p');status.textContent=already?'✓ Paid for '+week+' · '+interestState.paidWeeks[week].total+' points':'Not yet paid for '+week;
- const payday=document.createElement('button');payday.textContent=already?'✓ Interest already paid':'💰 Pay Friday Interest';payday.disabled=already;payday.onclick=payWeeklyInterest;
- const override=document.createElement('button');override.textContent='⚠ Pay Interest Again (Testing)';override.style.marginLeft='8px';override.style.background='#8b4513';override.style.color='white';override.onclick=()=>payWeeklyInterest(true);
- const warning=document.createElement('p');warning.textContent='Testing override: allows additional payouts in the same week. Each payout adds permanent points to savings. Use carefully; a backup is recommended.';
+ const payday=document.createElement('button');payday.textContent=already?'✓ Interest already paid':'💰 Pay Friday Interest';payday.disabled=already;payday.onclick=()=>payWeeklyInterest(false);
+ const override=document.createElement('button');override.textContent='⚠ PAY EXTRA INTEREST — TEST OVERRIDE';override.style.marginLeft='8px';override.style.background='#8b4513';override.style.color='white';override.style.border='2px solid #ffcd87';override.style.fontWeight='850';override.onclick=()=>payWeeklyInterest(true);
+ const warning=document.createElement('p');warning.textContent='TESTING MODE AVAILABLE · You can pay interest again this week using the orange button. WARNING: extra payouts permanently increase savings. Export a backup first.';
  const preview=document.createElement('p');const eligible=students.map(n=>interestFor(bankFor(n),interestState.rate));preview.textContent='Preview: '+eligible.filter(n=>n>0).length+' students · '+eligible.reduce((a,b)=>a+b,0)+' total interest points at the current rate.';
  const ledger=document.createElement('div');ledger.className='interest-ledger';
  const recent=interestState.ledger.slice(-6).reverse();if(recent.length){const label=document.createElement('p');label.textContent='Recent interest credits';ledger.append(label);for(const e of recent){const line=document.createElement('div');line.textContent=e.week+' · '+e.student+' +'+e.amount+(e.override?' (test override)':'');ledger.append(line);}}
