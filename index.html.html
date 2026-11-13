@@ -1,0 +1,825 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#080b10"><title>Classroom Points</title>
+<style>
+:root{color-scheme:dark;--bg:#0c1425;--panel:#1b2941;--edge:#344866;--ink:#f2f6ff;--muted:#a8b8d1;--accent:#58a4ff}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}header{padding:20px 20px 10px;display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap}h1{font-size:clamp(22px,3vw,30px);margin:0}#sub{color:var(--muted);font-size:13px;margin-top:4px}.actions{display:flex;gap:8px;flex-wrap:wrap}button{border:0;border-radius:9px;padding:10px 13px;background:#304564;color:#fff;font-weight:750;cursor:pointer;touch-action:manipulation}button:active{transform:scale(.97)}button:disabled{opacity:.4}button.primary{background:#267cde}button.danger{background:#ac4651}.board{padding:8px 20px 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:10px}.student{background:var(--panel);border:1px solid var(--edge);border-radius:13px;padding:13px;min-width:0}.student-head{display:flex;align-items:center;justify-content:space-between;gap:5px}.student-name{font-size:16px;font-weight:750;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.score{font-size:21px;font-weight:850;white-space:nowrap}.track{height:10px;border-radius:99px;background:#415574;margin:12px 0;overflow:hidden}.fill{height:100%;width:0;background:linear-gradient(90deg,#40b5d7,#7a9fff);transition:width .2s}.point-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}.point-actions button{padding:9px 1px;font-size:13px}.footer{color:var(--muted);font-size:12px;padding:0 20px 24px}.tv .point-actions,.tv .edit-only{display:none!important}.tv .student{padding:17px}.tv .board{grid-template-columns:repeat(auto-fit,minmax(185px,1fr))}.tv .score{font-size:25px}#notice{color:#9ec8ff;font-size:12px;margin-top:6px}input[type=file]{display:none}@media(max-width:600px){header{padding:14px 12px 6px}.board{padding:8px 12px;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.student{padding:10px}.student-name{font-size:13px}.score{font-size:16px}.point-actions button{font-size:12px;padding:9px 0}.actions button{padding:9px;font-size:12px}}
+
+.student{position:relative;isolation:isolate}.student.earned{animation:earned-glow .65s ease-out}.student.lost{animation:lost-glow .6s ease-out}
+.point-pop{position:absolute;z-index:5;top:5px;right:17px;font-weight:900;font-size:26px;pointer-events:none;text-shadow:0 2px 9px #0c1425;animation:pop-up .85s ease-out forwards}.point-pop.plus{color:#80f5b4}.point-pop.minus{color:#ff8b98}
+.spark{position:absolute;z-index:4;top:24px;right:43px;color:#ffdb77;font-size:18px;pointer-events:none;animation:spark-out .7s ease-out forwards}
+@keyframes earned-glow{0%{box-shadow:0 0 0 0 rgba(85,235,170,0);border-color:var(--edge)}25%{box-shadow:0 0 0 3px rgba(85,235,170,.65),0 0 24px rgba(85,235,170,.25);border-color:#76e8a5}100%{box-shadow:0 0 0 0 rgba(85,235,170,0);border-color:var(--edge)}}
+@keyframes lost-glow{25%{box-shadow:0 0 0 3px rgba(255,120,140,.4);border-color:#ff8496}100%{box-shadow:none;border-color:var(--edge)}}
+@keyframes pop-up{0%{opacity:0;transform:translateY(12px) scale(.65)}20%{opacity:1;transform:translateY(-3px) scale(1.2)}75%{opacity:1}100%{opacity:0;transform:translateY(-43px) scale(1)}}
+@keyframes spark-out{0%{opacity:0;transform:translate(0,0) scale(.3)}25%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(50deg) scale(.6)}}
+@media(prefers-reduced-motion:reduce){.student.earned,.student.lost,.point-pop,.spark{animation:none}.point-pop,.spark{display:none}}
+
+.tabs{display:flex;gap:8px;padding:0 20px 8px}.tabs button{background:#233651;border:1px solid var(--edge)}.tabs button.selected{background:#267cde;border-color:#6cb6ff}.timer-page{padding:16px 20px 40px;max-width:900px;margin:0 auto}.timer-page[hidden],.board[hidden]{display:none!important}.timer-panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}.timer-panel{background:var(--panel);border:1px solid var(--edge);border-radius:16px;padding:20px;text-align:center}.timer-panel h2{margin:0 0 14px;font-size:22px}.clock{font-variant-numeric:tabular-nums;font-size:clamp(52px,9vw,86px);font-weight:850;letter-spacing:-.05em;line-height:1.25;margin:15px 0}.clock.done{color:#ffcf76;animation:done-pulse 1s ease-in-out 3}.clock-controls,.presets{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}.presets{margin-bottom:12px}.presets button{background:#304564}.clock-controls button{min-width:95px}.minutes-input{width:80px;border:1px solid var(--edge);background:#0e1b30;color:white;border-radius:8px;padding:9px;font-size:16px;text-align:center}.timer-note{font-size:13px;color:var(--muted);margin-top:12px}.timer-status{min-height:22px;color:#9ec8ff;font-size:14px;margin:4px 0}.tv .timer-page{max-width:1100px}.tv .clock{font-size:clamp(70px,12vw,130px)}@keyframes done-pulse{50%{opacity:.45}}@media(max-width:600px){.tabs{padding:0 12px 8px}.timer-page{padding:12px}.timer-panel{padding:15px}.clock{font-size:58px}}
+
+.assign-page{padding:12px 20px 40px;max-width:1150px;margin:auto}.assign-page[hidden]{display:none!important}.assign-top,.assign-summary,.assign-row,.assign-toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}.assign-panel{background:var(--panel);border:1px solid var(--edge);border-radius:14px;padding:16px;margin-bottom:14px}.assign-panel h2{margin:0 0 10px;font-size:20px}.assign-input{background:#0e1b30;color:#fff;border:1px solid #536783;border-radius:9px;padding:11px;font:inherit;min-width:0}.assign-input:focus{outline:2px solid #58a4ff}.assign-form{display:flex;flex-wrap:wrap;gap:8px}.assign-form input[type=text]{flex:2;min-width:170px}.assign-form input[type=date]{flex:1;min-width:150px}.assign-row{border-top:1px solid #344866;padding:10px 2px;min-height:56px}.assign-name{font-weight:750}.assign-status{display:flex;gap:6px;align-items:center}.assign-status button{min-width:44px;min-height:42px;font-size:19px;border:1px solid #526480;background:#263852}.assign-status button.yes{background:#147b50;border-color:#58e4a3}.assign-status button.no{background:#a93748;border-color:#ff8796}.assign-status button.blank{background:#59718c;border-color:#c6d6ea}.assign-counts{font-size:14px;color:var(--muted);margin:9px 0}.assign-list{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.assign-list button{font-weight:650;border:1px solid var(--edge)}.assign-list button.selected{background:#267cde;border-color:#86c6ff}.assign-muted{color:var(--muted);font-size:13px}.assign-summary{margin:10px 0}.assign-progress{height:10px;background:#415574;border-radius:99px;overflow:hidden;flex:1;min-width:110px}.assign-progress div{height:100%;background:#47bd89}.tv .assign-page{display:none!important}@media(max-width:600px){.assign-page{padding:12px}.assign-panel{padding:12px}.assign-row{gap:8px}.assign-status button{min-width:40px}.assign-form button{flex:1}}
+
+/* Whole-class reward: temporary celebratory overlay, never blocks later taps. */
+.whole-class-button{background:linear-gradient(120deg,#a66a12,#d49b2a);color:#fff4ce;border:1px solid #f2c75e;box-shadow:0 0 0 1px #6b4c19 inset}
+.class-celebration{position:fixed;inset:0;z-index:100;display:grid;place-items:center;pointer-events:none;overflow:hidden;background:radial-gradient(circle,rgba(250,196,65,.20),rgba(12,20,37,.08) 55%,transparent 80%);animation:class-fade 2.3s ease-out forwards}
+.class-celebration-message{position:relative;z-index:2;max-width:90vw;text-align:center;padding:25px 30px;border:2px solid #ffdf83;border-radius:25px;background:linear-gradient(135deg,#513c18,#9a641a);box-shadow:0 12px 65px #000a,0 0 75px #f6bd4c88;animation:class-bounce .8s cubic-bezier(.18,1.3,.34,1) both}
+.class-celebration-title{font-weight:950;font-size:clamp(28px,7vw,65px);line-height:1.1;color:#fff3c5;text-shadow:0 3px 15px #4e310f}
+.class-celebration-sub{margin-top:12px;font-weight:800;font-size:clamp(15px,2.8vw,25px);color:#fff}
+.class-confetti{position:absolute;left:var(--x);top:-12%;font-size:var(--sz);color:var(--c);opacity:0;animation:class-fall var(--dur) ease-in var(--delay) forwards;text-shadow:0 0 10px #ffe29c88}
+.student.class-earned{animation:class-card-glow 1.6s ease-out}
+@keyframes class-fade{0%,72%{opacity:1}100%{opacity:0}}
+@keyframes class-bounce{0%{transform:scale(.3) rotate(-5deg);opacity:0}70%{transform:scale(1.06) rotate(1deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}
+@keyframes class-fall{0%{transform:translateY(-20px) rotate(0deg) scale(.5);opacity:0}10%{opacity:1}85%{opacity:1}100%{transform:translateY(115vh) rotate(var(--spin));opacity:0}}
+@keyframes class-card-glow{0%,100%{box-shadow:none}25%{box-shadow:0 0 0 2px #f4d477,0 0 26px #e9b84b88;border-color:#f4d477}}
+@media(prefers-reduced-motion:reduce){.class-celebration,.class-celebration-message,.class-confetti,.student.class-earned{animation:none}.class-confetti{display:none}.class-celebration{background:transparent}.class-celebration-message{box-shadow:none}}
+
+.whole-class-minus-button{background:linear-gradient(120deg,#5d587a,#78688e);color:#f6edff;border:1px solid #a998bd}
+.class-celebration.class-sad{background:radial-gradient(circle,rgba(98,110,153,.27),rgba(12,20,37,.14) 60%,transparent 85%);animation:class-fade 2.6s ease-out forwards}
+.class-sad .class-celebration-message{border-color:#aab3d1;background:linear-gradient(135deg,#343f60,#52617e);box-shadow:0 12px 65px #000a,0 0 65px #8290b555;animation:sad-drop .8s cubic-bezier(.2,.8,.3,1) both}
+.class-sad .class-celebration-title{color:#e9eaf5;text-shadow:0 3px 12px #1c2748}
+.class-sad .sad-face{display:block;font-size:clamp(70px,15vw,130px);line-height:1.2;animation:sad-wobble 1.2s ease-in-out both}
+.class-sad .class-confetti{animation:class-fall var(--dur) ease-in var(--delay) forwards;opacity:.7}
+.student.class-lost{animation:class-card-dim 1.8s ease-out}
+@keyframes sad-drop{0%{transform:translateY(-65px) scale(.65);opacity:0}65%{transform:translateY(9px) scale(1.02);opacity:1}100%{transform:translateY(0) scale(1);opacity:1}}
+@keyframes sad-wobble{0%,100%{transform:rotate(0)}30%{transform:rotate(-10deg)}65%{transform:rotate(8deg)}}
+@keyframes class-card-dim{0%,100%{filter:none}30%{filter:grayscale(.85) brightness(.7);border-color:#8791b1}}
+@media(prefers-reduced-motion:reduce){.class-sad .class-celebration-message,.class-sad .sad-face,.student.class-lost{animation:none}}
+
+/* Point Shop */
+.shop-page{padding:14px 20px 42px;max-width:1180px;margin:auto}.shop-page[hidden]{display:none!important}.shop-head{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:16px}.shop-head h2{font-size:27px;margin:0 0 5px}.shop-head p{margin:0;color:var(--muted)}.shop-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:13px}.shop-card{background:var(--panel);border:1px solid var(--edge);border-radius:15px;padding:18px;display:flex;flex-direction:column;gap:12px;min-height:190px}.shop-card.secret{border-color:#b98b46;background:linear-gradient(135deg,#252538,#1b2941)}.shop-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.shop-title{font-size:19px;font-weight:850;line-height:1.2}.shop-cost{font-size:16px;font-weight:850;color:#ffda91;white-space:nowrap}.shop-desc{color:#b9c8dd;font-size:14px;line-height:1.5;flex:1}.shop-buy{background:#267cde}.shop-buy:disabled{opacity:.4}.shop-footer{margin-top:18px;padding:14px 16px;border:1px solid var(--edge);border-radius:12px;color:#d6e1f2;font-size:14px;text-align:center}.shop-controls{background:#233651;border:1px solid var(--edge);padding:12px 14px;border-radius:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}.shop-controls select{background:#0e1b30;color:white;border:1px solid #536783;border-radius:8px;padding:10px;font-size:15px}.shop-controls strong{color:#ffda91}.shop-note{color:var(--muted);font-size:12px;margin-top:9px}.tv .shop-controls,.tv .shop-buy,.tv .shop-note{display:none!important}@media(max-width:600px){.shop-page{padding:12px}.shop-grid{grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:9px}.shop-card{padding:13px;min-height:205px}.shop-title{font-size:16px}.shop-cost{font-size:14px}.shop-desc{font-size:13px}.tabs{overflow-x:auto}.tabs button{white-space:nowrap}}
+
+/* Persistent Lofi Girl player: remains mounted while switching dashboard tabs. */
+.music-toggle{background:#344d6c;border:1px solid #6b85a8}
+.music-dock{position:fixed;right:14px;bottom:14px;z-index:80;width:min(344px,calc(100vw - 28px));background:#16253c;border:1px solid #587295;border-radius:14px;box-shadow:0 12px 35px #0009;overflow:hidden}
+.music-dock[hidden]{display:none!important}
+.music-bar{display:flex;align-items:center;gap:7px;padding:8px 9px;background:#223652}
+.music-label{flex:1;font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.music-bar button{padding:7px 9px;font-size:12px;border:1px solid #5a7599}
+.music-frame{width:100%;height:206px;border:0;display:block;background:#101b2d}
+.music-dock.collapsed{height:48px}
+.music-dock.collapsed .music-frame,.music-dock.collapsed .music-library{display:none}
+.music-dock.collapsed .music-bar{height:48px}
+@media(max-width:600px){.music-dock{right:8px;bottom:8px;width:min(310px,calc(100vw - 16px))}.music-frame{height:200px}}
+
+/* Dark graphite redesign: calm surfaces, quieter controls, stronger hierarchy */
+:root{--bg:#080b10;--panel:#121821;--edge:#27313f;--ink:#edf2f8;--muted:#93a0b2;--accent:#83aef4;color-scheme:dark}
+html{background:var(--bg)}body{background:var(--bg);color:var(--ink);line-height:1.45}
+header{padding:20px clamp(14px,2.4vw,32px) 14px;background:#0d121a;border-bottom:1px solid #202a36;align-items:flex-start}
+header h1{font-size:clamp(22px,2.6vw,29px);letter-spacing:-.045em;font-weight:790}
+#sub{color:var(--muted)}#notice{color:#8db7e6}
+.actions{gap:7px;align-items:center;justify-content:flex-end;max-width:930px}
+button{background:#222c3a;border:1px solid #344052;color:#e8eef7;border-radius:9px;padding:9px 12px;font-weight:680;transition:background .15s,border-color .15s}
+button:hover{background:#2d3949}button:focus-visible{outline:2px solid #96bff9;outline-offset:2px}
+button.primary,.tabs button.selected,.shop-buy{background:#355f98;border-color:#577fb6;color:#fff}
+button.danger{background:#482a32;border-color:#79414d;color:#ffdce1}
+.whole-class-button{background:#55401f;border:1px solid #8c6b35;color:#ffe6aa;box-shadow:none}
+.whole-class-minus-button{background:#482a32;border:1px solid #86505b;color:#ffd6de}
+.music-toggle{background:#263543;border:1px solid #40586d}
+.tabs{gap:6px;padding:12px clamp(14px,2.4vw,32px) 0;background:#0d121a;overflow-x:auto;border-bottom:1px solid #202a36}
+.tabs button{border-radius:9px 9px 0 0;background:transparent;border:1px solid transparent;border-bottom:0;color:#b0bfd0;white-space:nowrap;padding:10px 16px}
+.tabs button.selected{background:#172334;border:1px solid #344b66;border-bottom:0;color:#d9e9ff}
+.board-toolbar{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin:18px clamp(14px,2.4vw,32px) 4px;padding:12px 15px;background:#111821;border:1px solid var(--edge);border-radius:12px}
+.board-toolbar[hidden]{display:none!important}.board-toolbar-copy{display:flex;flex-direction:column;gap:1px}.board-toolbar-copy strong{font-size:14px;letter-spacing:.01em}.board-toolbar-copy span{font-size:12px;color:var(--muted)}
+.sort-switch{display:flex;flex-wrap:wrap;gap:3px;padding:4px;border-radius:10px;background:#090e15;border:1px solid #263240}
+.sort-switch button{background:transparent;border:1px solid transparent;font-size:13px;padding:8px 12px;color:#aab8ca;white-space:nowrap}
+.class-number-editor{display:inline-flex;align-items:center;gap:5px;color:#aab8ca;font-size:12px;white-space:nowrap}.class-number-editor input{width:60px;min-width:60px;padding:7px 5px;border-radius:7px;border:1px solid #42546c;background:#111b28;color:#f2f7ff;font-size:14px}.sort-switch button.active{background:#2b405d;border-color:#425e83;color:#f2f7ff;box-shadow:0 1px 5px #0005}
+.board{padding:12px clamp(14px,2.4vw,32px) 28px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.student{background:#121923;border:1px solid #293443;border-radius:12px;padding:13px;box-shadow:0 3px 10px #0002}
+.student-name{font-weight:700;font-size:15px}.score{font-weight:800;font-size:20px;letter-spacing:-.035em;color:#dceaff}
+.track{background:#273240;height:7px;margin:11px 0}.fill{background:linear-gradient(90deg,#4679ad,#7db2ec)}
+.point-actions{gap:5px}.point-actions button{background:#202b39;border-color:#2d3b4c;padding:8px 1px;font-weight:720}
+.point-actions button:last-child{color:#e8aab4}
+.timer-panel,.assign-panel,.shop-card{background:#121923;border:1px solid #293443;border-radius:13px;box-shadow:0 4px 14px #0002}
+.assign-input,.minutes-input,.shop-controls select{background:#0c131c;border-color:#354355;color:#eef3f9}
+.assign-row{border-top-color:#293443}.assign-status button{background:#263342;border-color:#405064}
+.assign-status button.yes{background:#1b624a}.assign-status button.no{background:#7b3543}
+.shop-controls{background:#171f2a;border-color:#293443}.shop-card.secret{background:linear-gradient(135deg,#24202a,#171d29)}
+.shop-cost{color:#e8c78e}.shop-footer{background:#111821;border-color:#293443}
+.music-dock{background:#111923;border-color:#35475b}.music-bar{background:#1a2736}
+.footer{color:#78889c}
+.tv .board-toolbar{margin-top:14px}.tv .board-toolbar-copy span{display:none}
+@media(max-width:600px){header{padding:14px 12px 10px}.actions{justify-content:flex-start}.tabs{padding:8px 12px 0}.tabs button{padding:9px 11px;font-size:12px}.board-toolbar{margin:12px 12px 2px;padding:10px}.board-toolbar-copy span{display:none}.sort-switch{width:100%}.sort-switch button{flex:1 1 auto;padding:8px 5px;font-size:11px}.board{padding:10px 12px 22px;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.student{padding:10px}.student-name{font-size:13px}.score{font-size:16px}}
+
+.reward-edit-form{display:flex;flex-direction:column;gap:10px;width:100%;min-width:0}.reward-edit-form label{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:650;color:#d7e4f5}.reward-edit-form input,.reward-edit-form textarea{box-sizing:border-box;width:100%;background:#0c131c;color:#eef3f9;border:1px solid #536783;border-radius:8px;padding:10px;font:inherit}.reward-edit-form textarea{resize:vertical;min-height:80px}.reward-edit-form .manage-actions{justify-content:flex-start}
+
+/* Classroom enhancements: search, point history, picker, yearly archives */
+.enhance-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:7px 20px 12px}
+.enhance-tools label{font-size:13px;color:var(--muted);font-weight:700}
+.enhance-input{background:#0e1b30;color:white;border:1px solid #536783;border-radius:9px;padding:11px;min-width:160px;max-width:100%;font:inherit}
+.enhance-panel{background:var(--panel);border:1px solid var(--edge);border-radius:14px;padding:17px;margin:14px 20px 30px}
+.enhance-panel h2{margin:0 0 8px;font-size:21px}.enhance-panel p{color:var(--muted);font-size:13px;line-height:1.5}
+.enhance-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}.enhance-row>label{min-width:100px}
+.history-item{padding:11px 2px;border-top:1px solid #344866;display:flex;justify-content:space-between;gap:12px;align-items:center}
+.history-item small{color:var(--muted)}.history-delta{font-weight:800;white-space:nowrap}.history-delta.positive{color:#7fe5aa}.history-delta.negative{color:#ff9eaa}
+.picker-result{font-size:clamp(28px,5vw,50px);font-weight:850;text-align:center;min-height:70px;padding:15px;color:#9ec8ff}
+.archive-warning{border-left:3px solid #e5ac54;padding-left:12px}.archive-list{margin-top:15px}.archive-list button{margin-left:8px}
+.enhance-panel[hidden],.enhance-tools[hidden]{display:none!important}.tv #history-page,.tv #archive-page{display:none!important}.tv #point-search-wrap{display:none!important}
+@media(max-width:600px){.enhance-tools{padding:7px 12px}.enhance-panel{margin:12px;padding:12px}.tabs{flex-wrap:wrap}}
+
+/* Settings layout repair — scoped so other tabs retain their existing design. */
+.settings-page{width:min(1220px,100%);margin:0 auto;padding:22px clamp(12px,2.5vw,28px) 48px}
+.settings-page[hidden]{display:none!important}
+.settings-head{margin:0 0 20px}
+.settings-head h2{font-size:clamp(22px,2.8vw,29px);margin:0 0 5px}
+.settings-head p{color:var(--muted);margin:0;line-height:1.5}
+.settings-columns{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+.settings-card{min-width:0;background:var(--panel);border:1px solid var(--edge);border-radius:15px;padding:20px;box-shadow:0 4px 16px #0003}
+.settings-card h3{margin:0 0 16px;font-size:20px;padding-bottom:12px;border-bottom:1px solid var(--edge)}
+.settings-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:start;margin-bottom:18px;padding:14px;background:#0c131c;border:1px solid #2c3a4b;border-radius:11px}
+.settings-form input,.settings-form textarea{display:block;width:100%;min-width:0;max-width:100%;font:inherit;color:var(--ink);background:#101a27;border:1px solid #45576c;border-radius:9px;padding:11px 12px;line-height:1.4}
+.settings-form input:focus,.settings-form textarea:focus,.reward-edit-form input:focus,.reward-edit-form textarea:focus{outline:2px solid #83aef4;outline-offset:1px}
+.settings-form textarea{resize:vertical;min-height:90px;grid-column:1/-1}
+.settings-form button{min-height:43px;white-space:normal}
+#reward-add-form{grid-template-columns:minmax(0,1fr) 110px}
+#reward-add-form button{grid-column:1/-1;justify-self:start}
+#student-manage-list,#reward-manage-list{display:flex;flex-direction:column;gap:8px;min-width:0}
+.settings-page .manage-row{display:flex;justify-content:space-between;align-items:center;gap:12px;min-width:0;padding:12px 13px;background:#151f2c;border:1px solid #2c394a;border-radius:10px}
+.settings-page .manage-row>span{display:block;flex:1;min-width:0;overflow-wrap:anywhere;font-size:14px;line-height:1.5}
+.settings-page .manage-row strong{display:block;font-size:15px;line-height:1.4}
+.settings-page .manage-meta{font-size:12px;color:var(--muted);line-height:1.5;margin-top:4px;white-space:normal;overflow-wrap:anywhere}
+.settings-page .manage-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:7px;flex-shrink:0}
+.settings-page .manage-actions button{font-size:12px;padding:8px 10px;white-space:nowrap}
+.settings-page .manage-actions .remove{color:#ffd6de;background:#452b34;border-color:#79505a}
+.settings-page .reward-edit-form{width:100%;min-width:0}
+.settings-page .manage-row:has(.reward-edit-form){align-items:stretch;padding:15px}
+.settings-page .reward-edit-form .manage-actions{justify-content:flex-start}
+.settings-warning{margin:18px 0 0;padding:13px 15px;border-left:3px solid #e5ac54;background:#1d2027;color:#c7cfdb;border-radius:0 9px 9px 0;font-size:13px;line-height:1.5}
+@media(max-width:900px){.settings-columns{grid-template-columns:minmax(0,1fr)}.settings-card{padding:16px}}
+@media(max-width:480px){.settings-page{padding:14px 12px 32px}.settings-form,#reward-add-form{grid-template-columns:minmax(0,1fr)}.settings-form textarea,#reward-add-form button{grid-column:1}.settings-form button{justify-self:stretch}.settings-page .manage-row{align-items:flex-start;flex-direction:column}.settings-page .manage-actions{justify-content:flex-start;flex-shrink:1;width:100%}}
+
+.music-library{padding:12px;display:grid;gap:8px;max-height:280px;overflow-y:auto;font-size:13px}.music-library label{font-weight:750}.music-input-row{display:flex;gap:6px}.music-input-row input{flex:1;min-width:0;background:#0c1625;color:white;border:1px solid #536783;border-radius:8px;padding:9px;font:inherit}.music-input-row button{flex-shrink:0;padding:8px}.music-feedback{color:#c2e1ff;min-height:16px;font-size:12px}.music-favorites{display:grid;gap:5px}.music-favorite-row{display:flex;gap:5px}.music-favorite-row button{font-size:12px;padding:7px 9px}.music-favorite-play{flex:1;min-width:0;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.music-help{margin:0;color:#aabbd0;font-size:11px;line-height:1.4}.music-dock:not(.collapsed){max-height:min(90vh,700px);overflow-y:auto}
+
+.sound-toggle{border:1px solid #58718d;border-radius:9px;padding:9px 12px;background:#142638;color:#fff;cursor:pointer}
+.general-bank{background:linear-gradient(120deg,#152a35,#172337);border:1px solid #4a7d85;border-radius:15px;padding:18px;margin:0 0 18px}.general-bank h3{margin:0 0 8px;font-size:21px}.general-bank p{margin:5px 0 12px;color:#b9d7e9;font-size:14px}.general-bank .bank-total{font-size:27px;font-weight:850;color:#a8f0ce}.general-bank .bank-controls{display:flex;align-items:center;flex-wrap:wrap;gap:9px}.general-bank input{width:94px;padding:10px;border:1px solid #647a91;border-radius:8px;background:#0c1725;color:white}.general-bank button{padding:10px 12px}.general-bank button:disabled{opacity:.45}.general-bank .bank-tip{font-size:12px;color:#a6c2ce;margin-top:10px}.savings-progress{height:10px;border-radius:99px;background:#24354b;overflow:hidden;margin:8px 0}.savings-progress>div{height:100%;background:#6ed5a0;border-radius:99px}
+.savings-note{font-size:12px;color:#b9d7e9;margin:5px 0}.savings-actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:9px}.savings-actions input{width:78px;min-width:0;background:#101c2a;color:#fff;border:1px solid #61758b;border-radius:7px;padding:8px}.savings-actions button{padding:8px 10px;border-radius:8px}.savings-actions button:disabled{opacity:.45}
+
+/* Large classroom-display point announcements; visual only, no saved data changes. */
+.point-announcement{position:fixed;inset:0;z-index:9998;display:flex;align-items:center;justify-content:center;pointer-events:none;padding:20px;animation:point-veil 1.65s ease-out forwards}
+.point-announcement-card{min-width:min(620px,90vw);max-width:94vw;padding:clamp(22px,5vw,52px);border-radius:30px;text-align:center;color:white;border:3px solid rgba(255,255,255,.5);box-shadow:0 18px 70px rgba(0,0,0,.48);animation:point-arrive .55s cubic-bezier(.2,1.5,.4,1) both}
+.point-announcement.plus .point-announcement-card{background:linear-gradient(135deg,#0b8f63,#22bd79)}
+.point-announcement.minus .point-announcement-card{background:linear-gradient(135deg,#9b3346,#d85664)}
+.point-announcement.big .point-announcement-card{background:linear-gradient(135deg,#7251c8,#d5a12b);box-shadow:0 18px 80px rgba(213,161,43,.4)}
+.point-announcement-name{font-weight:900;font-size:clamp(35px,7vw,86px);line-height:1.08;overflow-wrap:anywhere;text-shadow:0 3px 8px rgba(0,0,0,.2)}
+.point-announcement-score{font-weight:950;font-size:clamp(65px,13vw,160px);line-height:1.05;text-shadow:0 5px 12px rgba(0,0,0,.25)}
+.point-announcement-caption{font-size:clamp(16px,2.7vw,30px);font-weight:750;letter-spacing:.08em;text-transform:uppercase}
+@keyframes point-arrive{0%{transform:scale(.45) translateY(70px);opacity:0}70%{transform:scale(1.07);opacity:1}100%{transform:scale(1);opacity:1}}
+@keyframes point-veil{0%,70%{opacity:1}100%{opacity:0}}
+@media(prefers-reduced-motion:reduce){.point-announcement,.point-announcement-card{animation-duration:.1s}}
+
+.sound-settings{margin-top:18px}.sound-settings-grid{display:grid;gap:12px}.sound-setting-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px;border:1px solid #344355;border-radius:10px}.sound-setting-row strong{min-width:145px}.sound-setting-row input{max-width:100%;font-size:13px}.sound-setting-row button{padding:8px 11px}.sound-setting-row small{flex-basis:100%;color:#a9b6c8}.sound-setting-note{color:#a9b6c8;font-size:13px;line-height:1.5}
+
+/* Fix: global backup file-input rule must not hide sound uploads */
+.sound-setting-row input[type="file"]{display:block;max-width:100%;width:250px;color:#e5efff;cursor:pointer}
+.sound-setting-row input[type="file"]::file-selector-button{background:#304564;color:white;border:1px solid #607895;border-radius:8px;padding:9px 12px;margin-right:10px;cursor:pointer}
+
+.interest-panel{margin-top:16px;padding:14px;border:1px solid #56788a;border-radius:12px;background:#101f30}.interest-panel h4{margin:0 0 8px;font-size:17px}.interest-panel p{font-size:13px;margin:7px 0;color:#c2d5e5}.interest-panel button{margin:8px 8px 0 0}.interest-ledger{max-height:145px;overflow:auto;font-size:12px;color:#c4dfd3}.interest-ledger div{padding:5px 0;border-bottom:1px solid #354759}.interest-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.interest-controls input{width:74px;padding:7px;border-radius:6px;background:#0c1725;color:white;border:1px solid #647a91}
+
+/* Bylow Stock Exchange */
+.bsx-panel{background:#142334;border:1px solid #405975;border-radius:15px;padding:16px;margin:12px 0}.bsx-panel h3{margin:0 0 8px}.bsx-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:14px 0}.bsx-company{border:1px solid #455974;border-radius:13px;padding:14px;background:#101a2a}.bsx-company h3{font-size:17px;margin:0 0 6px}.bsx-company p{font-size:13px;color:#b9c9df;margin:5px 0}.bsx-company .risk{font-weight:750;color:#ffcf83}.bsx-controls{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:12px 0}.bsx-controls select,.bsx-controls input{background:#0d1827;color:white;border:1px solid #61758b;border-radius:8px;padding:9px;max-width:100%}.bsx-controls input{width:80px}.bsx-controls button{padding:9px 12px}.bsx-controls button:disabled{opacity:.45}.bsx-up{color:#7ce2a9}.bsx-down{color:#ff9da4}.bsx-log{font-size:13px;color:#c9d5e5;max-height:190px;overflow:auto}.bsx-log div{padding:5px 0;border-bottom:1px solid #34465a}
+</style><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#070a0f"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="apple-touch-icon" href="icon-192.png"></head><body><header><div><h1>⭐ Classroom Points</h1><div id="sub">Teacher controls · Saved on this iPad</div><div id="notice" role="status" aria-live="polite"></div></div><div class="actions"><button class="edit-only whole-class-button" id="whole-class">🌟 Whole Class +1</button><button class="edit-only whole-class-minus-button" id="whole-class-minus">😢 Whole Class -1</button><button class="edit-only" id="undo">↶ Undo</button><button class="edit-only" id="backup">Save backup</button><button class="edit-only" id="restore">Restore backup</button><button class="edit-only danger" id="reset">Reset All</button><button type="button" class="sound-toggle" id="sound-toggle" aria-pressed="true">🔊 Sounds on</button><button class="music-toggle" id="music-toggle" aria-expanded="false">🎵 Music</button></div></header><nav class="tabs" aria-label="Classroom tools"><button id="tab-points" class="selected" aria-pressed="true">⭐ Points</button><button id="tab-timers" aria-pressed="false">⏱ Timers</button><button id="tab-assignments" aria-pressed="false">📋 Assignments</button><button id="tab-missing" aria-pressed="false">🔎 Missing Work</button><button id="tab-shop" aria-pressed="false">🎟 Point Shop</button><button id="tab-market" aria-pressed="false">📈 Stock Exchange</button><button id="tab-history" aria-pressed="false">📜 History</button><button id="tab-picker" aria-pressed="false">🎲 Picker</button><button id="tab-archive" aria-pressed="false">🗂 School Years</button><button id="tab-settings" aria-pressed="false">⚙ Settings</button></nav><section class="board-toolbar" id="board-toolbar" aria-label="Scoreboard display options"><div class="board-toolbar-copy"><strong>Student scoreboard</strong><span>Choose how students are displayed</span></div><div class="sort-switch" role="group" aria-label="Scoreboard order"><button type="button" id="sort-leaderboard" class="active" aria-pressed="true">🏆 Leaderboard</button><button type="button" id="sort-alphabetical" aria-pressed="false">A–Z Alphabetical</button><button type="button" id="sort-classnumber" aria-pressed="false"># Class Number</button></div></section><div class="enhance-tools" id="point-search-wrap"><label for="point-search">Find student</label><input id="point-search" class="enhance-input" type="search" placeholder="Search student names…" autocomplete="off" aria-label="Search scoreboard"></div><main class="board" id="board"></main><section id="timer-page" class="timer-page" hidden><div class="timer-panels"><section class="timer-panel"><h2>Countdown Timer</h2><div class="presets"><button data-minutes="5">5 min</button><button data-minutes="10">10 min</button><button data-minutes="15">15 min</button><button data-minutes="20">20 min</button></div><div class="presets"><label for="custom-minutes">Minutes:</label><input id="custom-minutes" class="minutes-input" type="number" min="1" max="999" step="1" value="15" inputmode="numeric"><button id="set-custom">Set time</button></div><div id="countdown-display" class="clock" role="timer" aria-label="Countdown time remaining">15:00</div><div id="countdown-status" class="timer-status">Ready</div><div class="clock-controls"><button id="countdown-start" class="primary">Start</button><button id="countdown-pause" disabled>Pause</button><button id="countdown-reset">Reset</button></div><div class="timer-note">The timer continues accurately when you switch tabs. Pausing freezes the time.</div></section><section class="timer-panel"><h2>Stopwatch</h2><div id="stopwatch-display" class="clock" role="timer" aria-label="Elapsed stopwatch time">00:00</div><div id="stopwatch-status" class="timer-status">Ready</div><div class="clock-controls"><button id="stopwatch-start" class="primary">Start</button><button id="stopwatch-pause" disabled>Pause</button><button id="stopwatch-reset">Reset</button></div><div class="timer-note">Count up from zero. Pause and resume whenever you need.</div></section></div></section><section id="assign-page" class="assign-page" hidden>
+<div class="assign-panel"><h2>📋 Assignment Tracker</h2><div class="assign-muted">New assignments start as Not Checked Yet for every student. Saved privately in this iPad's Safari storage; do not display this tab to students.</div><form id="assign-form" class="assign-form" style="margin-top:12px"><input id="assign-title" class="assign-input" type="text" placeholder="Assignment name (e.g. Morning Journal)" maxlength="100" required aria-label="Assignment name"><input id="assign-date" class="assign-input" type="date" required aria-label="Assignment date"><button class="primary" type="submit">+ Add assignment</button></form><div id="assign-list" class="assign-list"></div></div>
+<div id="assign-detail" class="assign-panel" hidden><div class="assign-top"><h2 id="assign-heading"></h2><div class="actions"><button id="assign-edit">Edit</button><button class="danger" id="assign-delete">Delete</button></div></div><div id="assign-counts" class="assign-counts"></div><div class="assign-summary"><div class="assign-progress"><div id="assign-progress-fill"></div></div><span id="assign-progress-label"></span></div><div class="assign-toolbar"><label for="assign-filter">Show:</label><select id="assign-filter" class="assign-input"><option value="all">All students</option><option value="missing">Missing only</option><option value="unchecked">Not checked yet</option><option value="turned">Turned in</option></select><button id="assign-mark-all">Mark all turned in</button></div><div id="assign-students"></div></div>
+
+</section><section id="missing-page" class="assign-page" hidden><div class="assign-panel"><h2>Missing Work by Student</h2><div class="assign-muted">See everything a student still owes, across all assignments.</div><div class="assign-form" style="margin-top:10px"><select id="assign-student-filter" class="assign-input" aria-label="Select student"></select></div><div id="assign-missing-list" class="assign-counts"></div><div class="profile-actions"><button id="profile-copy" type="button">Copy missing list</button><button id="profile-all" type="button">Show all assignments</button></div><div id="student-profile-all" class="assign-counts" hidden></div></div></section><section id="shop-page" class="shop-page" hidden><div class="shop-head"><div><h2>🎟 The Point Shop</h2><p>Spend points, save toward a specific reward, or bank points until you decide. Banked points are protected from regular point deductions.</p></div><div class="shop-controls edit-only"><label for="shop-student">Redeem for:</label><select id="shop-student" aria-label="Student redeeming points"></select><strong id="shop-balance">0 points</strong></div></div><section id="general-bank" class="general-bank edit-only" aria-label="General savings account"></section><div id="shop-grid" class="shop-grid"></div><div class="shop-footer">All rewards are scheduled with Mr. Bylow. No refunds. Some secrets are worth saving for.</div><p class="shop-note edit-only">Teacher only: general savings can be moved directly to any reward later. Banked points are separate from available leaderboard points and cannot be lost through regular point deductions. Savings and transfers are not reversed by the regular Undo button.</p></section><section id="market-page" class="shop-page" hidden><div class="shop-head"><div><h2>📈 Bylow Stock Exchange</h2><p>Fictional school companies · teacher-controlled daily market · Friday settlement</p></div></div><div id="bsx-content"></div></section><section id="history-page" class="enhance-panel" hidden><h2>📜 Point History</h2><p>Point changes are recorded from this update onward. Earlier point totals cannot be reconstructed. This is a teacher-only view.</p><div class="enhance-row"><label for="history-student">Student</label><select id="history-student" class="enhance-input"><option value="">All students</option></select><button id="history-export" type="button">Export history CSV</button></div><div id="history-list" aria-live="polite"></div></section><section id="picker-page" class="enhance-panel" hidden><h2>🎲 Random Student Picker</h2><p>Choose randomly from your current roster. Use the search box below to optionally narrow the eligible students.</p><div class="enhance-row"><label for="picker-search">Eligible names</label><input id="picker-search" class="enhance-input" type="search" placeholder="Optional name filter"></div><div class="picker-result" id="picker-result" aria-live="polite">Ready to pick</div><div class="enhance-row"><button id="picker-go" class="primary" type="button">Pick a student</button><button id="picker-again" type="button">Pick another</button></div></section><section id="archive-page" class="enhance-panel" hidden><h2>🗂 School-Year Archives</h2><p>Save a dated snapshot of student points, assignments, rewards, and point history. Archives can be downloaded as JSON backups and restored later.</p><div class="enhance-row"><label for="archive-label">School year</label><input id="archive-label" class="enhance-input" maxlength="80" placeholder="e.g. 2026–2027"><button id="archive-save" type="button">Save year snapshot</button></div><div class="archive-list" id="archive-list"></div><h3>Start a new school year</h3><p class="archive-warning">First save an archive and download its backup. Starting a new year clears current scores, assignments, and point history. You can then edit your student roster in Settings. Existing rewards remain available.</p><button id="year-reset" class="danger" type="button">Archive and start new year</button></section><section id="settings-page" class="settings-page" hidden><div class="settings-head"><h2>⚙ Classroom Settings</h2><p>Edit your roster and reward shop without changing code. Changes save on this device.</p></div><div class="settings-columns"><section class="settings-card"><h3>Students</h3><p class="assign-muted">Class numbers default to alphabetical order. Change any number below to match your class list.</p><form id="student-add-form" class="settings-form"><input id="student-new-name" maxlength="60" placeholder="Student name" required><button type="submit">+ Add student</button></form><div id="student-manage-list"></div></section><section class="settings-card"><h3>Point Shop</h3><form id="reward-add-form" class="settings-form"><input id="reward-new-name" maxlength="80" placeholder="Reward name" required><input id="reward-new-cost" type="number" min="1" max="9999" placeholder="Points" required><textarea id="reward-new-desc" maxlength="300" placeholder="Mysterious description" required></textarea><button type="submit">+ Add reward</button></form><div id="reward-manage-list"></div></section></div><section class="settings-card sound-settings"><h3>🔊 Custom Point Sounds</h3><p class="sound-setting-note">Upload an MP3, WAV, M4A, or other iPad-supported audio file for each action. Tap Preview to hear it. Remove returns that action to its original sound. Sounds are saved on this device only; keep your originals as a backup.</p><div class="sound-volume-control" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:14px 0 20px;padding:14px;border:1px solid var(--line,#ccd4df);border-radius:12px"><label for="point-volume" style="font-weight:700">Point sound volume</label><input id="point-volume" type="range" min="0" max="100" step="5" value="70" style="flex:1;min-width:150px;max-width:340px" aria-label="Point sound volume"><output id="point-volume-value" for="point-volume">70%</output><button type="button" id="point-volume-preview">▶ Test volume</button></div><div id="sound-settings-grid" class="sound-settings-grid"></div><p id="sound-settings-status" class="sound-setting-note" role="status"></p></section><p class="settings-warning">Removing a student deletes their local score and assignment statuses. Export a backup first. Removing a reward does not refund previous redemptions.</p></section><div class="footer edit-only">Scores save automatically in Safari on this iPad. Use Save backup occasionally. This site does not sync between devices.</div><input id="file" type="file" accept="application/json,.json">
+<aside class="music-dock collapsed" id="music-dock" aria-label="Music player" hidden>
+<div class="music-bar"><span class="music-label" id="music-label">🎵 Classroom Music</span><button id="music-minimize" type="button" aria-label="Expand music player">Expand</button><button id="music-stop" type="button" aria-label="Stop music">Stop</button></div>
+<div class="music-library" id="music-library"><label for="music-url">Paste a YouTube or Spotify link</label><div class="music-input-row"><input id="music-url" type="url" placeholder="https://www.youtube.com/watch?v=…" autocomplete="off"><button id="music-play" type="button">Play</button></div><div class="music-input-row"><input id="music-title" type="text" maxlength="80" placeholder="Name this favorite (optional)"><button id="music-save" type="button">Save favorite</button></div><div class="music-feedback" id="music-feedback" role="status" aria-live="polite"></div><div class="music-favorites" id="music-favorites"></div><p class="music-help">YouTube videos, live streams and playlists; Spotify tracks, albums and playlists. Some content cannot play embedded due to provider restrictions. Favorites are saved on this device.</p></div>
+<iframe id="music-frame" class="music-frame" title="Classroom music player" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></aside><script>
+'use strict';
+let students=['Aamazi','Amaya','Amethyst','Ximena','Angel','Arianne','Austin','Azalea','Belal','Franco','Genesis','Greyson','Jaxon','Jaylene','Jazmine','Jocelyn','Kristen','Lark','Malayah','Marco','Marcos','Mario','Matisse','Michael','Nahani','Noah C.','Noah M.','Omar','Sophie','Titus'];
+const ROSTER_KEY='bylow-classroom-roster-v1';try{const r=JSON.parse(localStorage.getItem(ROSTER_KEY)||'null');if(Array.isArray(r)&&r.length&&r.every(n=>typeof n==='string'&&n.trim()))students=r;}catch(e){}
+const SORT_KEY='classroom-score-sort-v1';let sortMode='leaderboard';try{const savedSort=localStorage.getItem(SORT_KEY);if(['alphabetical','classnumber'].includes(savedSort))sortMode=savedSort;}catch(e){}
+const CLASS_NUMBER_KEY='bylow-class-numbers-v1';let classNumbers={};
+try{const savedNumbers=JSON.parse(localStorage.getItem(CLASS_NUMBER_KEY)||'null');if(savedNumbers&&typeof savedNumbers==='object'&&!Array.isArray(savedNumbers))classNumbers=savedNumbers;}catch(e){}
+function ensureClassNumbers(){const taken=new Set();for(const name of students){const n=Number(classNumbers[name]);if(Number.isSafeInteger(n)&&n>0&&!taken.has(n)){classNumbers[name]=n;taken.add(n);}else delete classNumbers[name];}let next=1;for(const name of [...students].sort((a,b)=>a.localeCompare(b))){if(classNumbers[name])continue;while(taken.has(next))next++;classNumbers[name]=next;taken.add(next);}persistClassNumbers();}
+function persistClassNumbers(){try{localStorage.setItem(CLASS_NUMBER_KEY,JSON.stringify(classNumbers));}catch(e){}}
+ensureClassNumbers();
+const KEY='classroom-points-ipad-v1';let scores=Object.fromEntries(students.map(s=>[s,0]));let history=[];
+const $=id=>document.getElementById(id);
+try{const saved=JSON.parse(localStorage.getItem(KEY)||'null');if(saved&&typeof saved==='object'){if(Number.isFinite(saved['Andrea'])&&!Number.isFinite(saved['Ximena']))saved['Ximena']=saved['Andrea'];for(const s of students)if(Number.isFinite(saved[s]))scores[s]=Math.floor(saved[s]);} }catch(e){show('Could not load saved scores.');}
+function show(message){$('notice').textContent=message;}
+function save(){recordPointChanges();try{localStorage.setItem(KEY,JSON.stringify(scores));show('Scores saved on this iPad');}catch(e){show('Safari could not save scores. Use Save backup.');}}
+// Locally generated feedback sounds. No downloaded audio or network access needed.
+const SOUND_VOLUME_KEY='bylow-point-sound-volume-v1';
+let soundVolume=Math.min(1,Math.max(0,Number(localStorage.getItem(SOUND_VOLUME_KEY)??'0.7')||0));
+const SOUND_KEY='bylow-point-sounds-enabled-v1';
+let soundsEnabled=localStorage.getItem(SOUND_KEY)!=='false',audioContext;
+function refreshSoundToggle(){const b=$('sound-toggle');b.textContent=soundsEnabled?'🔊 Sounds on':'🔇 Sounds off';b.setAttribute('aria-pressed',String(soundsEnabled));}
+$('sound-toggle').onclick=()=>{soundsEnabled=!soundsEnabled;localStorage.setItem(SOUND_KEY,String(soundsEnabled));refreshSoundToggle();};refreshSoundToggle();
+const soundTestButton=document.createElement('button');
+soundTestButton.type='button';soundTestButton.textContent='♪ Test sound';
+soundTestButton.title='Play a test tone';
+$('sound-toggle').insertAdjacentElement('afterend',soundTestButton);
+soundTestButton.addEventListener('click',()=>{if(!soundsEnabled){soundsEnabled=true;localStorage.setItem(SOUND_KEY,'true');refreshSoundToggle();}playPointSound('five');});
+
+async function playPointSound(kind){
+ if(!soundsEnabled)return;
+ try{
+  const AudioCtx=window.AudioContext||window.webkitAudioContext;if(!AudioCtx)return;
+  audioContext=audioContext||new AudioCtx();
+  if(audioContext.state!=='running')await audioContext.resume();
+  if(audioContext.state!=='running')return;
+  const now=audioContext.currentTime+.035;
+  const notes={one:[[740,0,.16]],two:[[650,0,.15],[880,.17,.20]],five:[[587,0,.14],[784,.16,.14],[988,.32,.16],[1175,.51,.32]],minus:[[440,0,.16],[330,.19,.22]],classPlus:[[523,0,.16],[659,.18,.16],[784,.36,.16],[1047,.55,.40]],classMinus:[[440,0,.20],[370,.23,.20],[294,.46,.36]]}[kind]||[];
+  for(const [freq,offset,duration] of notes){
+   const oscillator=audioContext.createOscillator(),gain=audioContext.createGain();
+   oscillator.type=kind==='classMinus'?'triangle':'sine';
+   oscillator.frequency.setValueAtTime(freq,now+offset);
+   gain.gain.setValueAtTime(.0001,now+offset);
+   gain.gain.exponentialRampToValueAtTime((kind.startsWith('class')?.22:.18)*Math.max(soundVolume,0.0001),now+offset+.025);
+   gain.gain.exponentialRampToValueAtTime(.0001,now+offset+duration);
+   oscillator.connect(gain);gain.connect(audioContext.destination);
+   oscillator.start(now+offset);oscillator.stop(now+offset+duration+.03);
+  }
+ }catch(e){console.warn('Sound unavailable:',e);}
+}
+// Unlock iPad/Safari audio on a real touch or click, before any point action.
+function unlockPointAudio(){
+ if(!soundsEnabled)return;
+ try{
+  const AudioCtx=window.AudioContext||window.webkitAudioContext;
+  if(!AudioCtx)return;
+  audioContext=audioContext||new AudioCtx();
+  if(audioContext.state!=='running')audioContext.resume().catch(()=>{});
+ }catch(e){}
+}
+document.addEventListener('pointerdown',unlockPointAudio,{passive:true});
+document.addEventListener('touchstart',unlockPointAudio,{passive:true});
+
+
+// Custom sounds: IndexedDB stores binary files, separate from classroom localStorage.
+const CUSTOM_SOUND_DB='bylow-custom-sounds-v1';
+const SOUND_ACTIONS=[['one','Student +1'],['two','Student +2'],['five','Student +5'],['minus','Student −1'],['classPlus','Whole Class +1'],['classMinus','Whole Class −1']];
+const soundCache=new Map();
+let soundDBPromise;
+function openSoundDB(){
+ if(!('indexedDB' in window))return Promise.reject(Error('This browser does not support audio storage'));
+ if(!soundDBPromise)soundDBPromise=new Promise((resolve,reject)=>{
+  const req=indexedDB.open(CUSTOM_SOUND_DB,1);
+  req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains('effects'))req.result.createObjectStore('effects');};
+  req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error||Error('Audio storage unavailable'));
+ });
+ return soundDBPromise;
+}
+async function getSoundEntry(key){const db=await openSoundDB();return new Promise((resolve,reject)=>{const req=db.transaction('effects','readonly').objectStore('effects').get(key);req.onsuccess=()=>resolve(req.result||null);req.onerror=()=>reject(req.error);});}
+async function writeSoundEntry(key,value){const db=await openSoundDB();return new Promise((resolve,reject)=>{const tx=db.transaction('effects','readwrite');if(value)tx.objectStore('effects').put(value,key);else tx.objectStore('effects').delete(key);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);});}
+async function refreshCustomSoundCache(){
+ try{await Promise.all(SOUND_ACTIONS.map(async ([key])=>{const entry=await getSoundEntry(key);if(entry?.blob){const url=URL.createObjectURL(entry.blob);const old=soundCache.get(key);if(old)URL.revokeObjectURL(old.url);soundCache.set(key,{url,name:entry.name});}else{const old=soundCache.get(key);if(old)URL.revokeObjectURL(old.url);soundCache.delete(key);}}));}
+ catch(e){console.warn('Custom sound loading unavailable',e);}
+}
+const originalPointSound=playPointSound;
+playPointSound=function(kind){
+ if(!soundsEnabled)return;
+ const saved=soundCache.get(kind);
+ if(!saved)return originalPointSound(kind);
+ try{
+  const audio=new Audio(saved.url);audio.volume=soundVolume;
+  const promise=audio.play();if(promise)promise.catch(()=>originalPointSound(kind));
+ }catch(e){originalPointSound(kind);}
+};
+function soundStatus(msg){const node=$('sound-settings-status');if(node)node.textContent=msg;}
+function renderSoundSettings(){
+ const grid=$('sound-settings-grid');if(!grid)return;
+ grid.replaceChildren();
+ for(const [key,label] of SOUND_ACTIONS){
+  const row=document.createElement('div');row.className='sound-setting-row';
+  const title=document.createElement('strong');title.textContent=label;
+  const upload=document.createElement('input');upload.type='file';upload.accept='audio/*,.mp3,.wav,.m4a,.aac,.ogg';upload.setAttribute('aria-label','Upload sound for '+label);
+  const preview=document.createElement('button');preview.type='button';preview.textContent='▶ Preview';preview.onclick=()=>playPointSound(key);
+  const remove=document.createElement('button');remove.type='button';remove.textContent='Restore original';remove.disabled=!soundCache.has(key);
+  remove.onclick=async()=>{try{await writeSoundEntry(key,null);const old=soundCache.get(key);if(old)URL.revokeObjectURL(old.url);soundCache.delete(key);soundStatus(label+': original sound restored.');renderSoundSettings();}catch(e){soundStatus('Could not remove sound: '+e.message);}};
+  const description=document.createElement('small');description.textContent=soundCache.get(key)?.name||'Using original built-in sound';
+  upload.onchange=async()=>{
+   const file=upload.files?.[0];if(!file)return;
+   if(!(file.type.startsWith('audio/')||/\.(mp3|wav|m4a|aac|ogg)$/i.test(file.name))){soundStatus('Please select an audio file.');return;}
+   if(file.size>3*1024*1024){soundStatus('Please choose a sound smaller than 3 MB.');return;}
+   upload.disabled=true;soundStatus('Saving '+label+'…');
+   try{await writeSoundEntry(key,{name:file.name,blob:file});const old=soundCache.get(key);if(old)URL.revokeObjectURL(old.url);soundCache.set(key,{name:file.name,url:URL.createObjectURL(file)});soundStatus(label+' saved on this iPad.');renderSoundSettings();}
+   catch(e){soundStatus('Could not save audio. Check Safari storage space: '+e.message);upload.disabled=false;}
+  };
+  row.append(title,upload,preview,remove,description);grid.append(row);
+ }
+}
+const pointVolumeSlider=$('point-volume');
+const pointVolumeValue=$('point-volume-value');
+pointVolumeSlider.value=String(Math.round(soundVolume*100));
+pointVolumeValue.textContent=pointVolumeSlider.value+'%';
+pointVolumeSlider.addEventListener('input',()=>{
+ soundVolume=Number(pointVolumeSlider.value)/100;
+ pointVolumeValue.textContent=pointVolumeSlider.value+'%';
+ try{localStorage.setItem(SOUND_VOLUME_KEY,String(soundVolume));}catch(e){console.warn('Could not save volume preference',e);}
+});
+$('point-volume-preview').addEventListener('click',()=>playPointSound('five'));
+refreshCustomSoundCache().then(renderSoundSettings);
+
+function draw(){const max=Math.max(10,...Object.values(scores));$('board').replaceChildren(...[...students].filter(n=>n.toLocaleLowerCase().includes(($('point-search').value||'').trim().toLocaleLowerCase())).sort(sortMode==='alphabetical'?(a,b)=>a.localeCompare(b):sortMode==='classnumber'?(a,b)=>classNumbers[a]-classNumbers[b]||a.localeCompare(b):(a,b)=>scores[b]-scores[a]||a.localeCompare(b)).map(name=>{const card=document.createElement('section');card.className='student';card.dataset.student=name;const head=document.createElement('div');head.className='student-head';const title=document.createElement('span');title.className='student-name';title.textContent=(sortMode==='classnumber'?'#'+classNumbers[name]+' · ':'')+name;title.classList.add('student-profile-link');title.title='View missing assignments for '+name;title.tabIndex=0;title.setAttribute('role','button');const openProfile=()=>{switchTab('missing');$('assign-student-filter').value=name;renderMissing();$('assign-student-filter').scrollIntoView({behavior:'smooth',block:'center'});};title.onclick=openProfile;title.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openProfile();}};const score=document.createElement('span');score.className='score';score.textContent=scores[name]+' pts';score.style.color=scores[name]<0?'#ff858f':'';head.append(title,score);const track=document.createElement('div');track.className='track';const fill=document.createElement('div');fill.className='fill';fill.style.width=(100*Math.max(0,scores[name])/max)+'%';track.append(fill);const buttons=document.createElement('div');buttons.className='point-actions';for(const delta of [1,2,5,-1]){const b=document.createElement('button');b.textContent=(delta>0?'+':'')+delta;b.setAttribute('aria-label',`${delta>0?'Add':'Subtract'} ${Math.abs(delta)} points ${name}`);b.addEventListener('click',()=>{const next=scores[name]+delta;if(next===scores[name])return;history.push({...scores});if(history.length>100)history.shift();pointChangeReason='Manual adjustment';scores[name]=next;save();draw();playPointSound(delta===1?'one':delta===2?'two':delta===5?'five':'minus');celebrate(name,delta);});buttons.append(b);}card.append(head,track,buttons);return card;}));$('undo').disabled=!history.length;}
+
+function setSortMode(mode){sortMode=mode;try{localStorage.setItem(SORT_KEY,mode);}catch(e){}for(const key of ['leaderboard','alphabetical','classnumber']){const btn=$('sort-'+key);btn.classList.toggle('active',key===mode);btn.setAttribute('aria-pressed',String(key===mode));}draw();}
+$('sort-leaderboard').onclick=()=>setSortMode('leaderboard');$('sort-alphabetical').onclick=()=>setSortMode('alphabetical');$('sort-classnumber').onclick=()=>setSortMode('classnumber');
+setSortMode(sortMode);
+let classCelebrationTimeout;
+function celebrateWholeClass(){
+ document.querySelector('.class-celebration')?.remove();
+ clearTimeout(classCelebrationTimeout);
+ document.querySelectorAll('.student').forEach((card,i)=>{
+   card.classList.remove('class-earned','class-lost');
+   void card.offsetWidth;
+   card.style.animationDelay=(i%6)*45+'ms';
+   card.classList.add('class-earned');
+ });
+ const overlay=document.createElement('div');overlay.className='class-celebration';overlay.setAttribute('aria-hidden','true');
+ const message=document.createElement('div');message.className='class-celebration-message';
+ const title=document.createElement('div');title.className='class-celebration-title';title.textContent='🌟 WHOLE CLASS +1! 🌟';
+ const sub=document.createElement('div');sub.className='class-celebration-sub';sub.textContent='Everyone earned a point!';
+ message.append(title,sub);overlay.append(message);
+ const shapes=['★','✦','●','◆'];const colors=['#ffe07d','#f7bd49','#8be3ff','#ff9fc1','#b5ffa4'];
+ for(let i=0;i<65;i++){
+   const piece=document.createElement('span');piece.className='class-confetti';piece.textContent=shapes[i%shapes.length];
+   piece.style.setProperty('--x',((i*73+17)%100)+'%');
+   piece.style.setProperty('--sz',(13+(i*11)%20)+'px');
+   piece.style.setProperty('--c',colors[i%colors.length]);
+   piece.style.setProperty('--delay',((i*37)%650)+'ms');
+   piece.style.setProperty('--dur',(1250+(i*41)%800)+'ms');
+   piece.style.setProperty('--spin',((i%2?-1:1)*(200+(i*23)%480))+'deg');
+   overlay.append(piece);
+ }
+ document.body.append(overlay);
+ classCelebrationTimeout=setTimeout(()=>{
+   overlay.remove();
+   document.querySelectorAll('.student.class-earned').forEach(c=>{c.classList.remove('class-earned');c.style.animationDelay='';});
+ },2350);
+}
+$('whole-class').onclick=()=>{
+ history.push({...scores});if(history.length>100)history.shift();
+ pointChangeReason='Whole class +1';for(const name of students)scores[name]+=1;
+ save();draw();playPointSound('classPlus');celebrateWholeClass();
+};
+
+function subtractWholeClass(){
+ document.querySelector('.class-celebration')?.remove();
+ clearTimeout(classCelebrationTimeout);
+ document.querySelectorAll('.student').forEach((card,i)=>{
+   card.classList.remove('class-earned','class-lost');
+   void card.offsetWidth;
+   card.style.animationDelay=(i%6)*45+'ms';
+   card.classList.add('class-lost');
+ });
+ const overlay=document.createElement('div');overlay.className='class-celebration class-sad';overlay.setAttribute('aria-hidden','true');
+ const message=document.createElement('div');message.className='class-celebration-message';
+ const face=document.createElement('span');face.className='sad-face';face.textContent='😢';
+ const title=document.createElement('div');title.className='class-celebration-title';title.textContent='WHOLE CLASS -1';
+ const sub=document.createElement('div');sub.className='class-celebration-sub';sub.textContent='Everyone lost a point.';
+ message.append(face,title,sub);overlay.append(message);
+ const drops=['💧','•','·'];
+ for(let i=0;i<26;i++){
+   const piece=document.createElement('span');piece.className='class-confetti';piece.textContent=drops[i%drops.length];
+   piece.style.setProperty('--x',((i*61+13)%100)+'%');
+   piece.style.setProperty('--sz',(14+(i*7)%18)+'px');
+   piece.style.setProperty('--c','#9eaccb');
+   piece.style.setProperty('--delay',((i*37)%650)+'ms');
+   piece.style.setProperty('--dur',(1400+(i*43)%850)+'ms');
+   piece.style.setProperty('--spin','15deg');
+   overlay.append(piece);
+ }
+ document.body.append(overlay);
+ classCelebrationTimeout=setTimeout(()=>{
+   overlay.remove();
+   document.querySelectorAll('.student.class-lost').forEach(c=>{c.classList.remove('class-lost');c.style.animationDelay='';});
+ },2700);
+}
+$('whole-class-minus').onclick=()=>{
+ history.push({...scores});if(history.length>100)history.shift();
+ pointChangeReason='Whole class -1';for(const name of students)scores[name]-=1;
+ save();draw();playPointSound('classMinus');subtractWholeClass();
+};
+
+$('undo').onclick=()=>{if(!history.length)return;scores=history.pop();pointChangeReason='Undo';save();draw();};
+$('reset').onclick=()=>{if(!confirm('Reset every student POINT score to zero? Assignments will not be changed.'))return;history.push({...scores});scores=Object.fromEntries(students.map(s=>[s,0]));pointChangeReason='Reset points';save();draw();};
+$('backup').onclick=()=>{const data={version:3,created:new Date().toISOString(),scores,assignments,students,rewards,pointHistory:pointEvents,classNumbers,rewardSavings,interestState,marketState};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='classroom-points-backup.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);show('Backup downloaded');};
+$('restore').onclick=()=>$('file').click();$('file').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{const data=JSON.parse(await file.text());if(!data.scores||typeof data.scores!=='object')throw Error('Invalid backup');const restoredStudents=Array.isArray(data.students)&&data.students.length&&data.students.every(n=>typeof n==='string'&&n.trim())?data.students:students;const next=Object.fromEntries(restoredStudents.map(n=>[n,0]));for(const s of restoredStudents){const value=s==='Ximena'&&!Number.isFinite(data.scores[s])?data.scores['Andrea']:data.scores[s];if(!Number.isFinite(value))throw Error('Invalid student score');next[s]=Math.floor(value);}if(!confirm('Replace current scores with this backup?'))return;history.push({...scores});students=restoredStudents;scores=next;classNumbers=data.classNumbers&&typeof data.classNumbers==='object'?{...data.classNumbers}:{};ensureClassNumbers();skipPointLog=true;localStorage.setItem(ROSTER_KEY,JSON.stringify(students));if(Array.isArray(data.rewards)){rewards=data.rewards.filter(r=>r&&typeof r.name==='string'&&Number.isFinite(r.cost)&&typeof r.description==='string');localStorage.setItem(REWARDS_KEY,JSON.stringify(rewards));}ensureRewardIds();resetSavingsFromData(data.rewardSavings);saveInterestState(sanitizeInterestState(data.interestState));saveMarketState(cleanMarket(data.marketState));updateStudentSelectors();save();draw();if(Array.isArray(data.pointHistory)){pointEvents=data.pointHistory.filter(validPointEvent).slice(-5000);persistPointHistory();}if(Array.isArray(data.assignments)){assignments=validateAssignments(data.assignments);saveAssignments();renderAssignments();}show('Backup restored');}catch(err){alert('Could not restore backup: '+err.message);}finally{e.target.value='';}};
+let pointAnnouncementTimer;
+function showPointAnnouncement(name,delta){
+ document.querySelector('.point-announcement')?.remove();
+ clearTimeout(pointAnnouncementTimer);
+ const layer=document.createElement('div');
+ layer.className='point-announcement '+(delta<0?'minus':'plus')+(delta>=5?' big':'');
+ layer.setAttribute('aria-hidden','true');
+ const card=document.createElement('div');card.className='point-announcement-card';
+ const who=document.createElement('div');who.className='point-announcement-name';who.textContent=name;
+ const amount=document.createElement('div');amount.className='point-announcement-score';amount.textContent=(delta>0?'+':'')+delta;
+ const caption=document.createElement('div');caption.className='point-announcement-caption';
+ caption.textContent=delta>=5?'★ Amazing work! ★':delta>0?'Points earned!':'Point deducted';
+ card.append(who,amount,caption);layer.append(card);document.body.append(layer);
+ pointAnnouncementTimer=setTimeout(()=>layer.remove(),1650);
+}
+function celebrate(name,delta){
+ showPointAnnouncement(name,delta);
+ const card=[...document.querySelectorAll('.student')].find(c=>c.dataset.student===name);if(!card)return;
+ card.classList.add(delta>0?'earned':'lost');
+ const bubble=document.createElement('span');bubble.className='point-pop '+(delta<0?'minus':'plus');bubble.textContent=(delta>0?'+':'')+delta;card.append(bubble);
+ if(delta>=5){for(let i=0;i<7;i++){const star=document.createElement('span');star.className='spark';star.textContent=i%2?'✦':'★';star.style.setProperty('--dx',((i-3)*19)+'px');star.style.setProperty('--dy',(-35-Math.abs(i-3)*8)+'px');star.style.animationDelay=(i*35)+'ms';card.append(star);}}
+ setTimeout(()=>{card.classList.remove('earned','lost');bubble.remove();card.querySelectorAll('.spark').forEach(s=>s.remove());},950);
+}
+draw();
+
+
+// The Point Shop uses the same individual score balances as the Points tab.
+let rewards=[
+ {name:'Fun Friday',cost:25,description:'You know what this is. The question is, are you cashing out?'},
+ {name:'Friday Video',cost:50,description:'Bill Nye or Magic School Bus? Your call. Everyone watches.'},
+ {name:'Game Takeover',cost:50,description:'Kahoot or Blooket? You decide. Mr. Bylow handles the questions.'},
+ {name:'Paper Airplane Grand Prix',cost:60,description:'One sheet of paper. Three challenges. One champion.'},
+ {name:'Classroom Championship',cost:75,description:"The bracket is waiting. Who's making it to the finals?"},
+ {name:'Minute-to-Win-It Tournament',cost:75,description:"60 seconds. A series of challenges. Think you're fast enough?"},
+ {name:'The VIP Four',cost:125,description:"You and three friends. A special game. During PE. That's all you need to know."},
+ {name:'Bring Your Own Game Day',cost:125,description:'Your games. Your classmates. A school day with different rules.'},
+ {name:'Rearrange Day',cost:150,description:'What if you controlled the order of the school day?'},
+ {name:'???',cost:200,description:'No hints. No spoilers. Someone will have to find out.',secret:true}
+];
+const REWARDS_KEY='bylow-classroom-rewards-v1';try{const saved=JSON.parse(localStorage.getItem(REWARDS_KEY)||'null');if(Array.isArray(saved))rewards=saved.filter(r=>r&&typeof r.name==='string'&&Number.isFinite(r.cost)&&r.cost>0&&typeof r.description==='string').map(r=>({id:(typeof r.id==='string'&&r.id)?r.id:undefined,name:r.name,cost:r.cost,description:r.description,secret:!!r.secret}));}catch(e){}
+// Reward savings: reserved points live outside the spendable scoreboard balance.
+// Each reward receives a stable id, so edits and reorderings do not lose deposits.
+const SAVINGS_KEY='bylow-reward-savings-v1';const GENERAL_BANK_ID='__general_bank__';let rewardSavings={};
+// Interest is teacher-awarded once per ISO week, and applies only to general savings.
+const INTEREST_KEY='bylow-general-bank-interest-v1';
+const DEFAULT_INTEREST_RATE=2;
+let interestState={rate:DEFAULT_INTEREST_RATE,paidWeeks:{},ledger:[]};
+function sanitizeInterestState(raw){
+ const rate=Number(raw?.rate);
+ return {rate:Number.isFinite(rate)&&rate>=0&&rate<=10?rate:DEFAULT_INTEREST_RATE,
+  paidWeeks:raw?.paidWeeks&&typeof raw.paidWeeks==='object'&&!Array.isArray(raw.paidWeeks)?raw.paidWeeks:{},
+  ledger:Array.isArray(raw?.ledger)?raw.ledger.filter(e=>e&&typeof e.week==='string'&&typeof e.student==='string'&&Number.isSafeInteger(e.amount)&&e.amount>=0).slice(-2000):[]};
+}
+try{interestState=sanitizeInterestState(JSON.parse(localStorage.getItem(INTEREST_KEY)||'null'));}catch(e){}
+function saveInterestState(state){try{localStorage.setItem(INTEREST_KEY,JSON.stringify(state));interestState=state;return true;}catch(e){alert('Could not save interest records. No interest was paid.');return false;}}
+function interestWeekKey(date=new Date()){
+ // ISO week in local time, with Monday as the first day.
+ const d=new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()));
+ d.setUTCDate(d.getUTCDate()+4-(d.getUTCDay()||7));
+ const year=d.getUTCFullYear(),start=new Date(Date.UTC(year,0,1));
+ return year+'-W'+String(Math.ceil((((d-start)/86400000)+1)/7)).padStart(2,'0');
+}
+function interestFor(balance,rate){if(balance<5||rate<=0)return 0;return Math.max(1,Math.floor(balance*rate/100));}
+function payWeeklyInterest(force=false){
+ const week=interestWeekKey();if(interestState.paidWeeks[week]&&!force)return alert('Interest has already been paid for '+week+'. Use the test override if you intentionally want another payment.');
+ const rate=interestState.rate,entries=students.map(student=>({student,balance:bankFor(student)})).map(e=>({...e,amount:interestFor(e.balance,rate)})).filter(e=>e.amount>0);
+ const total=entries.reduce((n,e)=>n+e.amount,0);
+ if(force){
+  if(!confirm('⚠ TEST OVERRIDE — EXTRA INTEREST PAYMENT\n\nThis will ADD '+total+' more real points to '+entries.length+' student savings accounts, even though interest was already paid this week.\n\nThese points will persist and count toward future interest. Continue?'))return;
+ }else if(!confirm('Pay '+rate+'% interest for '+week+'?\n'+entries.length+' students will receive '+total+' total banked points.\nNormally this can only be paid once per week.'))return;
+ const nextSavings=structuredClone(rewardSavings);
+ for(const e of entries){if(!nextSavings[e.student])nextSavings[e.student]={};nextSavings[e.student][GENERAL_BANK_ID]=e.balance+e.amount;}
+ const now=new Date().toISOString(),nextInterest={...interestState,paidWeeks:{...interestState.paidWeeks,[week]:{at:now,rate,total:(interestState.paidWeeks[week]?.total||0)+total,students:entries.length,payments:(interestState.paidWeeks[week]?.payments||0)+1}},ledger:[...interestState.ledger,...entries.map(e=>({week,at:now,student:e.student,amount:e.amount,rate,override:!!force}))].slice(-2000)};
+ // Commit savings first; if the interest record fails, revert savings to avoid duplicate payouts.
+ const oldSavings=rewardSavings;rewardSavings=nextSavings;
+ if(!saveSavings()){rewardSavings=oldSavings;return;}
+ if(!saveInterestState(nextInterest)){rewardSavings=oldSavings;saveSavings();return;}
+ renderShop();show((force?'Extra test interest paid: ':'Interest paid: ')+total+' points to '+entries.length+' students for '+week+'.');
+}
+function renderInterestPanel(){
+ const parent=$('general-bank');if(!parent)return;
+ const panel=document.createElement('div');panel.className='interest-panel';
+ const heading=document.createElement('h4');heading.textContent='📈 Bank of Bylow · Weekly Interest';
+ const week=interestWeekKey(),already=!!interestState.paidWeeks[week];
+ const expl=document.createElement('p');expl.textContent='Teacher-controlled payday (you can pay once per calendar week, preferably Friday). Interest is compounded on general savings only, rounded down to whole points; accounts with at least 5 points earn a minimum of 1 point when the rate is above zero.';
+ const controls=document.createElement('div');controls.className='interest-controls';
+ const rateLabel=document.createElement('label');rateLabel.textContent='Weekly rate (%)';
+ const rateInput=document.createElement('input');rateInput.type='number';rateInput.min='0';rateInput.max='10';rateInput.step='0.5';rateInput.value=String(interestState.rate);rateInput.setAttribute('aria-label','Weekly interest rate percent');
+ const setRate=document.createElement('button');setRate.textContent='Save rate';setRate.onclick=()=>{const rate=Number(rateInput.value);if(!Number.isFinite(rate)||rate<0||rate>10||Math.round(rate*2)!==rate*2)return alert('Choose 0–10% in half-percent increments.');if(saveInterestState({...interestState,rate})){renderShop();show('Weekly interest rate set to '+rate+'%.');}};
+ controls.append(rateLabel,rateInput,setRate);
+ const status=document.createElement('p');status.textContent=already?'✓ Paid for '+week+' · '+interestState.paidWeeks[week].total+' points':'Not yet paid for '+week;
+ const payday=document.createElement('button');payday.textContent=already?'✓ Interest already paid':'💰 Pay Friday Interest';payday.disabled=already;payday.onclick=payWeeklyInterest;
+ const override=document.createElement('button');override.textContent='⚠ Pay Interest Again (Testing)';override.style.marginLeft='8px';override.style.background='#8b4513';override.style.color='white';override.onclick=()=>payWeeklyInterest(true);
+ const warning=document.createElement('p');warning.textContent='Testing override: allows additional payouts in the same week. Each payout adds permanent points to savings. Use carefully; a backup is recommended.';
+ const preview=document.createElement('p');const eligible=students.map(n=>interestFor(bankFor(n),interestState.rate));preview.textContent='Preview: '+eligible.filter(n=>n>0).length+' students · '+eligible.reduce((a,b)=>a+b,0)+' total interest points at the current rate.';
+ const ledger=document.createElement('div');ledger.className='interest-ledger';
+ const recent=interestState.ledger.slice(-6).reverse();if(recent.length){const label=document.createElement('p');label.textContent='Recent interest credits';ledger.append(label);for(const e of recent){const line=document.createElement('div');line.textContent=e.week+' · '+e.student+' +'+e.amount+(e.override?' (test override)':'');ledger.append(line);}}
+ panel.append(heading,expl,controls,status,payday,override,warning,preview,ledger);parent.append(panel);
+}
+
+try{const stored=JSON.parse(localStorage.getItem(SAVINGS_KEY)||'{}');if(stored&&typeof stored==='object'&&!Array.isArray(stored))rewardSavings=stored;}catch(e){}
+function ensureRewardIds(){let changed=false;for(const r of rewards){if(typeof r.id!=='string'||!r.id){r.id='reward-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10);changed=true;}}if(changed)persistRewardsOnly();}
+function persistRewardsOnly(){try{localStorage.setItem(REWARDS_KEY,JSON.stringify(rewards));}catch(e){alert('Could not save reward information. Please make a backup.');}}
+function saveSavings(){try{localStorage.setItem(SAVINGS_KEY,JSON.stringify(rewardSavings));return true;}catch(e){alert('Could not save reward savings. No points were changed.');return false;}}
+function savingsFor(student,reward){return Math.max(0,Math.floor(Number(rewardSavings[student]?.[reward.id])||0));}
+function updateSavings(student,reward,amount){const old=savingsFor(student,reward);if(amount===old)return true;const next=structuredClone(rewardSavings);if(!next[student])next[student]={};if(amount>0)next[student][reward.id]=amount;else delete next[student][reward.id];const previous=rewardSavings;rewardSavings=next;if(!saveSavings()){rewardSavings=previous;return false;}return true;}
+function bankFor(student){return Math.max(0,Math.floor(Number(rewardSavings[student]?.[GENERAL_BANK_ID])||0));}
+// Write both sides of a bank transfer in a single savings record.
+function changeBank(student,bankAmount,reward=null,rewardAmount=null){
+ const next=structuredClone(rewardSavings);
+ if(!next[student])next[student]={};
+ if(bankAmount>0)next[student][GENERAL_BANK_ID]=bankAmount;
+ else delete next[student][GENERAL_BANK_ID];
+ if(reward){if(rewardAmount>0)next[student][reward.id]=rewardAmount;else delete next[student][reward.id];}
+ const previous=rewardSavings;rewardSavings=next;
+ if(!saveSavings()){rewardSavings=previous;return false;}
+ return true;
+}
+function renderGeneralBank(student){
+ const panel=$('general-bank');panel.replaceChildren();
+ const bank=bankFor(student),available=scores[student]??0;
+ const heading=document.createElement('h3');heading.textContent='🏦 General Savings Account';
+ const info=document.createElement('p');info.textContent='Not sure what to buy? Store points here until you choose a reward. Regular point deductions never touch this account.';
+ const total=document.createElement('div');total.className='bank-total';total.textContent=bank+' points banked';
+ const controls=document.createElement('div');controls.className='bank-controls';
+ const amount=document.createElement('input');amount.type='number';amount.min='1';amount.step='1';amount.value=String(Math.max(1,Math.min(5,available)));amount.setAttribute('aria-label','Number of points to deposit into general savings');
+ const deposit=document.createElement('button');deposit.textContent='Deposit to savings';deposit.type='button';deposit.disabled=available<=0;
+ deposit.onclick=()=>{
+  const student=$('shop-student').value,qty=Number(amount.value),balance=scores[student];
+  if(!Number.isSafeInteger(qty)||qty<=0||qty>balance)return alert('Enter a whole number of points between 1 and '+Math.max(0,balance)+'.');
+  if(!confirm('Bank '+qty+' points for '+student+'? These points will be protected from normal deductions.'))return;
+  if(!changeBank(student,bankFor(student)+qty))return;
+  history=[];pointChangeReason='Deposited to general savings';scores[student]-=qty;save();draw();renderShop();show(student+' banked '+qty+' points.');
+ };
+ controls.append(amount,deposit);
+ const tip=document.createElement('div');tip.className='bank-tip';tip.textContent='To spend banked points, use “Use banked points” on the reward you choose. This transfers savings to that reward without returning them to the leaderboard.';
+ panel.append(heading,info,total,controls,tip);renderInterestPanel();
+}
+function resetSavingsFromData(data){rewardSavings={};if(data&&typeof data==='object'&&!Array.isArray(data)){for(const [student,entries] of Object.entries(data)){if(!students.includes(student)||!entries||typeof entries!=='object')continue;rewardSavings[student]={};for(const [id,v] of Object.entries(entries)){if((id===GENERAL_BANK_ID||rewards.some(r=>r.id===id))&&Number.isSafeInteger(v)&&v>0)rewardSavings[student][id]=v;}}}saveSavings();}
+ensureRewardIds();
+// Earlier versions regenerated reward IDs on reload. Keep unmatched deposits intact
+// and warn the teacher instead of silently discarding potentially recoverable savings.
+function warnOrphanedSavings(){
+ const ids=new Set(rewards.map(r=>r.id));let orphanCount=0,orphanTotal=0;
+ for(const entries of Object.values(rewardSavings)){
+  if(!entries||typeof entries!=='object')continue;
+  for(const [id,amount] of Object.entries(entries))if(id!==GENERAL_BANK_ID&&!ids.has(id)&&Number(amount)>0){orphanCount++;orphanTotal+=Number(amount);}
+ }
+ if(orphanCount){
+  const note=document.createElement('div');note.style.cssText='position:fixed;bottom:12px;left:12px;right:12px;z-index:99999;background:#fff4d6;color:#503500;border:2px solid #bd8a20;border-radius:12px;padding:12px;font:600 14px system-ui;box-shadow:0 3px 16px #0003';
+  note.textContent='Savings recovery needed: '+orphanTotal+' deposited points from an older version are still stored but are not linked to a current reward. Do not reset or clear browser data. Export a backup and contact support to recover them.';
+  const close=document.createElement('button');close.textContent='Dismiss';close.style.marginLeft='12px';close.onclick=()=>note.remove();note.append(close);
+  document.addEventListener('DOMContentLoaded',()=>document.body.append(note),{once:true});
+ }
+}
+warnOrphanedSavings();
+function updateStudentSelectors(){for(const id of ['shop-student','assign-student-filter']){const el=$(id),current=el.value;el.replaceChildren();for(const name of students){const option=document.createElement('option');option.value=name;option.textContent=name;el.append(option);}if(students.includes(current))el.value=current;}}
+updateStudentSelectors();
+function renderShop(){
+ const name=$('shop-student').value||students[0];const balance=scores[name]??0;
+ $('shop-balance').textContent=balance+' available · '+bankFor(name)+' banked';
+ renderGeneralBank(name);
+ const grid=$('shop-grid');grid.replaceChildren();
+ for(const reward of [...rewards].sort((a,b)=>a.cost-b.cost || a.name.localeCompare(b.name))){
+  const saved=savingsFor(name,reward),remaining=Math.max(0,reward.cost-saved);
+  const card=document.createElement('article');card.className='shop-card'+(reward.secret?' secret':'');
+  const top=document.createElement('div');top.className='shop-top';
+  const title=document.createElement('div');title.className='shop-title';title.textContent=reward.name;
+  const price=document.createElement('div');price.className='shop-cost';price.textContent=reward.cost+' PTS';top.append(title,price);
+  const desc=document.createElement('div');desc.className='shop-desc';desc.textContent=reward.description;
+  const progress=document.createElement('div');progress.className='savings-progress';const fill=document.createElement('div');fill.style.width=(100*Math.min(saved,reward.cost)/reward.cost)+'%';progress.append(fill);
+  const note=document.createElement('div');note.className='savings-note';note.textContent=saved+' saved · '+remaining+' to go'+(saved>=reward.cost?' · Ready to redeem':'');
+  const actions=document.createElement('div');actions.className='savings-actions edit-only';
+  const amount=document.createElement('input');amount.type='number';amount.min='1';amount.max=String(Math.max(1,Math.min(balance,remaining)));amount.step='1';amount.value=String(Math.min(5,Math.max(1,balance),Math.max(1,remaining)));amount.setAttribute('aria-label','Points to save toward '+reward.name);
+  const deposit=document.createElement('button');deposit.type='button';deposit.textContent='Save points';deposit.disabled=balance<=0||remaining===0;
+  deposit.onclick=()=>{const student=$('shop-student').value,qty=Number(amount.value),available=scores[student],current=savingsFor(student,reward);if(!Number.isSafeInteger(qty)||qty<=0||qty>available||qty>reward.cost-current)return alert('Enter a whole number of points you have available, up to the remaining reward cost.');if(!confirm('Move '+qty+' points from '+student+"'s available balance into savings for "+reward.name+'?'))return;if(!updateSavings(student,reward,current+qty))return;history=[];pointChangeReason='Saved for: '+reward.name;scores[student]-=qty;save();draw();renderShop();show(student+' saved '+qty+' points for '+reward.name+'.');};
+  const withdraw=document.createElement('button');withdraw.type='button';withdraw.textContent='Withdraw';withdraw.disabled=saved===0;
+  withdraw.onclick=()=>{const student=$('shop-student').value,current=savingsFor(student,reward);const raw=prompt('How many saved points should be returned to '+student+"'s available balance?",String(current));if(raw===null)return;const qty=Number(raw);if(!Number.isSafeInteger(qty)||qty<=0||qty>current)return alert('Enter a whole number between 1 and '+current+'.');if(!updateSavings(student,reward,current-qty))return;history=[];pointChangeReason='Withdrew savings: '+reward.name;scores[student]+=qty;save();draw();renderShop();show('Returned '+qty+' points to '+student+'.');};
+  const redeem=document.createElement('button');redeem.type='button';redeem.textContent='Redeem';redeem.disabled=saved+balance<reward.cost;
+  redeem.onclick=()=>{const student=$('shop-student').value,current=savingsFor(student,reward),needed=Math.max(0,reward.cost-current);if(scores[student]<needed)return;const msg='Redeem '+reward.name+' for '+student+'?\n\nSaved: '+current+' points\nAdditional points to deduct: '+needed+'\nAvailable afterward: '+(scores[student]-needed)+' points\n\nThis cannot be undone with the regular Undo button.';if(!confirm(msg))return;if(!updateSavings(student,reward,0))return;history=[];pointChangeReason='Redeemed: '+reward.name;scores[student]-=needed;save();draw();renderShop();show(student+' redeemed '+reward.name+'.');};
+  const fromBank=document.createElement('button');fromBank.type='button';fromBank.textContent='Use banked points';fromBank.disabled=bankFor(name)<=0||remaining<=0;
+  fromBank.onclick=()=>{
+   const student=$('shop-student').value,currentBank=bankFor(student),currentSaved=savingsFor(student,reward),space=Math.max(0,reward.cost-currentSaved);
+   const raw=prompt('Transfer how many points from '+student+"'s general savings to "+reward.name+'?\nBanked: '+currentBank+'\nRemaining reward cost: '+space,String(Math.min(currentBank,space)));
+   if(raw===null)return;
+   const qty=Number(raw);
+   if(!Number.isSafeInteger(qty)||qty<=0||qty>currentBank||qty>space)return alert('Enter a whole number between 1 and '+Math.min(currentBank,space)+'.');
+   if(!confirm('Move '+qty+' banked points into savings for '+reward.name+'?'))return;
+   if(!changeBank(student,currentBank-qty,reward,currentSaved+qty))return;
+   history=[];renderShop();show('Moved '+qty+' banked points toward '+reward.name+'.');
+  };
+  actions.append(amount,deposit,fromBank,withdraw,redeem);card.append(top,desc,progress,note,actions);grid.append(card);
+ }
+}
+$('shop-student').onchange=renderShop;
+
+// Timer tools are independent of the student's saved scores.
+let activeTab='points';
+function switchTab(tab){activeTab=tab;$('board-toolbar').hidden=tab!=='points';$('point-search-wrap').hidden=tab!=='points';for(const t of ['points','timers','assignments','missing','shop','market','history','picker','archive','settings']){const visible=t===tab;$(t==='points'?'board':t==='timers'?'timer-page':t==='assignments'?'assign-page':t==='missing'?'missing-page':t==='shop'?'shop-page':t==='market'?'market-page':t==='history'?'history-page':t==='picker'?'picker-page':t==='archive'?'archive-page':'settings-page').hidden=!visible;$('tab-'+t).classList.toggle('selected',visible);$('tab-'+t).setAttribute('aria-pressed',String(visible));}if(tab==='assignments')renderAssignments();if(tab==='missing')renderMissing();if(tab==='shop')renderShop();if(tab==='market')renderMarket();if(tab==='settings'){renderSettings();renderSoundSettings();}if(tab==='history')renderPointHistory();if(tab==='archive')renderArchives();}
+$('tab-points').onclick=()=>switchTab('points');$('tab-timers').onclick=()=>switchTab('timers');$('tab-assignments').onclick=()=>switchTab('assignments');$('tab-missing').onclick=()=>switchTab('missing');$('tab-shop').onclick=()=>switchTab('shop');$('tab-market').onclick=()=>switchTab('market');$('tab-settings').onclick=()=>switchTab('settings');for(const t of ['history','picker','archive'])$('tab-'+t).onclick=()=>switchTab(t);
+const formatClock=ms=>{const secs=Math.max(0,Math.ceil(ms/1000));const minutes=Math.floor(secs/60);return String(minutes).padStart(2,'0')+':'+String(secs%60).padStart(2,'0');};
+let chosenDuration=15*60000,remaining=chosenDuration,countdownRunning=false,countdownEnd=0;
+let stopwatchElapsed=0,stopwatchRunning=false,stopwatchStart=0;
+function updateClocks(){
+ if(countdownRunning){remaining=Math.max(0,countdownEnd-Date.now());if(remaining===0){countdownRunning=false;$('countdown-status').textContent='Time is up!';$('countdown-display').classList.remove('done');void $('countdown-display').offsetWidth;$('countdown-display').classList.add('done');}}
+ const elapsed=stopwatchRunning?stopwatchElapsed+(Date.now()-stopwatchStart):stopwatchElapsed;
+ $('countdown-display').textContent=formatClock(remaining);$('stopwatch-display').textContent=formatClock(elapsed);
+ $('countdown-start').disabled=countdownRunning||remaining===0;$('countdown-start').textContent=remaining<chosenDuration?'Resume':'Start';$('countdown-pause').disabled=!countdownRunning;
+ $('stopwatch-start').disabled=stopwatchRunning;$('stopwatch-start').textContent=stopwatchElapsed>0?'Resume':'Start';$('stopwatch-pause').disabled=!stopwatchRunning;
+}
+function setDuration(min){if(!Number.isInteger(min)||min<1||min>999){alert('Choose a whole number of minutes between 1 and 999.');return;}chosenDuration=min*60000;remaining=chosenDuration;countdownRunning=false;$('countdown-display').classList.remove('done');$('countdown-status').textContent='Ready';$('custom-minutes').value=min;updateClocks();}
+document.querySelectorAll('[data-minutes]').forEach(button=>button.onclick=()=>setDuration(Number(button.dataset.minutes)));
+$('set-custom').onclick=()=>setDuration(Number($('custom-minutes').value));
+$('countdown-start').onclick=()=>{if(remaining<=0)return;countdownEnd=Date.now()+remaining;countdownRunning=true;$('countdown-display').classList.remove('done');$('countdown-status').textContent='Running';updateClocks();};
+$('countdown-pause').onclick=()=>{if(!countdownRunning)return;remaining=Math.max(0,countdownEnd-Date.now());countdownRunning=false;$('countdown-status').textContent='Paused';updateClocks();};
+$('countdown-reset').onclick=()=>{remaining=chosenDuration;countdownRunning=false;$('countdown-display').classList.remove('done');$('countdown-status').textContent='Ready';updateClocks();};
+$('stopwatch-start').onclick=()=>{if(stopwatchRunning)return;stopwatchStart=Date.now();stopwatchRunning=true;$('stopwatch-status').textContent='Running';updateClocks();};
+$('stopwatch-pause').onclick=()=>{if(!stopwatchRunning)return;stopwatchElapsed+=Date.now()-stopwatchStart;stopwatchRunning=false;$('stopwatch-status').textContent='Paused';updateClocks();};
+$('stopwatch-reset').onclick=()=>{stopwatchRunning=false;stopwatchElapsed=0;$('stopwatch-status').textContent='Ready';updateClocks();};
+setInterval(updateClocks,200);document.addEventListener('visibilitychange',updateClocks);updateClocks();
+
+// Assignment data has its own storage key and does not change point scores.
+const ASSIGN_KEY='classroom-assignments-ipad-v1';
+const validStatus=new Set(['yes','no','unchecked']);
+function validateAssignments(input){if(!Array.isArray(input))throw Error('Invalid assignments');return input.slice(0,1000).map(a=>{if(!a||typeof a!=='object'||typeof a.title!=='string'||typeof a.date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(a.date))throw Error('Invalid assignment entry');const statuses={};for(const name of students)statuses[name]=validStatus.has(a.statuses?.[name])?a.statuses[name]:'unchecked';return{id:String(a.id||Date.now()+Math.random()),title:a.title.slice(0,100),date:a.date,statuses};});}
+let assignments=[];let selectedAssignment=null;
+try{assignments=validateAssignments(JSON.parse(localStorage.getItem(ASSIGN_KEY)||'[]'));}catch(e){show('Could not load assignments; existing data has not been changed.');}
+function saveAssignments(){try{localStorage.setItem(ASSIGN_KEY,JSON.stringify(assignments));show('Assignments saved on this iPad');}catch(e){alert('Safari could not save assignments. Export a backup and check storage settings.');}}
+function localDate(){const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');}
+$('assign-date').value=localDate();
+
+$('assign-form').onsubmit=e=>{e.preventDefault();const title=$('assign-title').value.trim(),date=$('assign-date').value;if(!title||!date)return;const id=String(Date.now())+'-'+Math.random().toString(36).slice(2);assignments.push({id,title,date,statuses:Object.fromEntries(students.map(s=>[s,'unchecked']))});selectedAssignment=id;$('assign-title').value='';saveAssignments();renderAssignments();};
+function niceDate(date){const [y,m,d]=date.split('-');return m+'/'+d+'/'+y;}
+function renderAssignments(){const list=$('assign-list');list.replaceChildren();const sorted=[...assignments].sort((a,b)=>b.date.localeCompare(a.date));for(const a of sorted){const b=document.createElement('button');b.textContent=a.title+' · '+niceDate(a.date);b.className=a.id===selectedAssignment?'selected':'';b.onclick=()=>{selectedAssignment=a.id;$('assign-filter').value='all';renderAssignments();};list.append(b);}if(!assignments.length){const empty=document.createElement('p');empty.className='assign-muted';empty.textContent='No assignments yet. Add your first one above.';list.append(empty);}if(!assignments.some(a=>a.id===selectedAssignment))selectedAssignment=sorted[0]?.id||null;const a=assignments.find(x=>x.id===selectedAssignment);$('assign-detail').hidden=!a;if(a){$('assign-heading').textContent=a.title+' — '+niceDate(a.date);const counts={yes:0,no:0,unchecked:0};for(const s of students)counts[a.statuses[s]]++;$('assign-counts').textContent=`✓ ${counts.yes} turned in  ·  ✕ ${counts.no} missing  ·  ○ ${counts.unchecked} not checked yet`;$('assign-progress-fill').style.width=(counts.yes/students.length*100)+'%';$('assign-progress-label').textContent=counts.yes+' / '+students.length+' turned in';const list=$('assign-students');list.replaceChildren();const filter=$('assign-filter').value;for(const s of students){const status=a.statuses[s];if(filter!=='all'&&status!==({missing:'no',turned:'yes',unchecked:'unchecked'}[filter]))continue;const row=document.createElement('div');row.className='assign-row';const name=document.createElement('span');name.className='assign-name';name.textContent=s;const group=document.createElement('div');group.className='assign-status';for(const [value,label,aria] of [['yes','✓','Turned in'],['no','✕','Missing'],['unchecked','○','Not checked yet']]){const b=document.createElement('button');b.textContent=label;b.className=status===value?value==='yes'?'yes':value==='no'?'no':'blank':'';b.setAttribute('aria-label',s+': '+aria);b.setAttribute('aria-pressed',String(status===value));b.onclick=()=>{a.statuses[s]=value;saveAssignments();renderAssignments();};group.append(b);}row.append(name,group);list.append(row);}}renderMissing();}
+function renderMissing(){const name=$('assign-student-filter').value,missing=assignments.filter(a=>a.statuses[name]==='no').sort((a,b)=>b.date.localeCompare(a.date));const target=$('assign-missing-list');target.replaceChildren();if(!missing.length){target.textContent='No assignments marked missing for '+name+'.';}else{for(const a of missing){const div=document.createElement('div');div.className='assign-row';div.textContent=a.title+' — '+niceDate(a.date);target.append(div);}}const panel=$('student-profile-all');if(!panel.hidden){panel.replaceChildren();for(const a of [...assignments].sort((a,b)=>b.date.localeCompare(a.date))){const row=document.createElement('div');row.className='assign-row';const label=document.createElement('span');label.textContent=a.title+' — '+niceDate(a.date);const state=document.createElement('span');state.className='profile-status';state.textContent=({yes:'Turned in',no:'Missing',unchecked:'Not checked yet'})[a.statuses[name]]||'Not checked yet';const change=document.createElement('button');change.textContent='Mark turned in';change.disabled=a.statuses[name]==='yes';change.onclick=()=>{a.statuses[name]='yes';saveAssignments();renderAssignments();};row.append(label,state,change);panel.append(row);}if(!assignments.length)panel.textContent='No assignments yet.';}}
+$('profile-copy').onclick=()=>{const n=$('assign-student-filter').value;const missing=assignments.filter(a=>a.statuses[n]==='no').sort((a,b)=>b.date.localeCompare(a.date));const content=n+' — Missing assignments\n'+(missing.length?missing.map(a=>'- '+a.title+' ('+niceDate(a.date)+')').join('\n'):'None marked missing');if(navigator.clipboard?.writeText)navigator.clipboard.writeText(content).then(()=>show('Missing work list copied')).catch(()=>prompt('Copy list:',content));else prompt('Copy list:',content);};
+$('profile-all').onclick=()=>{const panel=$('student-profile-all');panel.hidden=!panel.hidden;$('profile-all').textContent=panel.hidden?'Show all assignments':'Hide all assignments';renderMissing();};
+$('assign-filter').onchange=renderAssignments;$('assign-student-filter').onchange=renderMissing;
+$('assign-edit').onclick=()=>{const a=assignments.find(x=>x.id===selectedAssignment);if(!a)return;const title=prompt('Assignment name:',a.title);if(title===null)return;const trimmed=title.trim();if(!trimmed){alert('Assignment name cannot be blank.');return;}const date=prompt('Date (YYYY-MM-DD):',a.date);if(date===null)return;if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){alert('Use YYYY-MM-DD for the date.');return;}a.title=trimmed.slice(0,100);a.date=date;saveAssignments();renderAssignments();};
+$('assign-delete').onclick=()=>{const a=assignments.find(x=>x.id===selectedAssignment);if(!a||!confirm('Delete '+a.title+' and all its checkmarks?'))return;assignments=assignments.filter(x=>x.id!==a.id);selectedAssignment=null;saveAssignments();renderAssignments();};
+$('assign-mark-all').onclick=()=>{const a=assignments.find(x=>x.id===selectedAssignment);if(!a||!confirm('Mark all students as turned in for '+a.title+'?'))return;for(const s of students)a.statuses[s]='yes';saveAssignments();renderAssignments();};
+renderAssignments();
+
+
+function saveRoster(){ensureClassNumbers();localStorage.setItem(ROSTER_KEY,JSON.stringify(students));save();saveAssignments();updateStudentSelectors();draw();renderAssignments();renderShop();renderSettings();}
+function saveRewards(){ensureRewardIds();persistRewardsOnly();renderShop();renderSettings();}
+function renderSettings(){
+ const roster=$('student-manage-list');roster.replaceChildren();
+ for(const name of [...students].sort((a,b)=>a.localeCompare(b))){const row=document.createElement('div');row.className='manage-row';const label=document.createElement('span');label.textContent=name+' · '+scores[name]+' pts';
+ const numLabel=document.createElement('label');numLabel.className='class-number-editor';numLabel.textContent='Class # ';
+ const numInput=document.createElement('input');numInput.type='number';numInput.min='1';numInput.max='999';numInput.step='1';numInput.value=classNumbers[name];numInput.setAttribute('aria-label','Class number for '+name);
+ numInput.addEventListener('change',()=>{const next=Number(numInput.value);if(!Number.isSafeInteger(next)||next<1||next>999||students.some(n=>n!==name&&classNumbers[n]===next)){alert('Choose an unused class number between 1 and 999.');numInput.value=classNumbers[name];return;}classNumbers[name]=next;persistClassNumbers();draw();});numLabel.append(numInput);
+ const buttons=document.createElement('div');buttons.className='manage-actions';const edit=document.createElement('button');edit.textContent='Rename';edit.onclick=()=>{const next=prompt('Rename student:',name);if(next===null)return;const n=next.trim();if(!n||students.includes(n)){alert('Enter a unique student name.');return;}students[students.indexOf(name)]=n;if(rewardSavings[name]){rewardSavings[n]=rewardSavings[name];delete rewardSavings[name];saveSavings();}classNumbers[n]=classNumbers[name];delete classNumbers[name];persistClassNumbers();scores[n]=scores[name];delete scores[name];pointEvents.forEach(event=>{if(event.student===name)event.student=n;});persistPointHistory();lastSavedScores={...scores};for(const a of assignments){a.statuses[n]=a.statuses[name]||'unchecked';delete a.statuses[name];}if(marketState.holdings[name]){marketState.holdings[n]=marketState.holdings[name];delete marketState.holdings[name];saveMarketState(marketState);}saveRoster();};const remove=document.createElement('button');remove.className='remove';remove.textContent='Remove';remove.onclick=()=>{if(!confirm('Remove '+name+' and their points and assignment records from this device? Export a backup first.'))return;if(students.length<=1){alert('Keep at least one student.');return;}if((marketState.holdings[name]||[]).length)return alert('Settle the stock market before removing a student with investments.');const deposits=Object.values(rewardSavings[name]||{}).reduce((sum,v)=>sum+(Number(v)||0),0);if(deposits>0&&!confirm(name+' has '+deposits+' saved reward points. Removing the student deletes those savings too. Continue?'))return;delete rewardSavings[name];saveSavings();students=students.filter(n=>n!==name);delete classNumbers[name];persistClassNumbers();delete scores[name];lastSavedScores={...scores};for(const a of assignments)delete a.statuses[name];saveRoster();};buttons.append(edit,remove);row.append(label,numLabel,buttons);roster.append(row);}
+ const shop=$('reward-manage-list');shop.replaceChildren();
+ rewards.forEach((r,i)=>{
+  const row=document.createElement('div');row.className='manage-row';
+  const label=document.createElement('span');
+  const strong=document.createElement('strong');strong.textContent=r.name;
+  const meta=document.createElement('div');meta.className='manage-meta';meta.textContent=r.cost+' points · '+r.description;
+  label.append(strong,meta);
+  const actions=document.createElement('div');actions.className='manage-actions';
+  const edit=document.createElement('button');edit.type='button';edit.textContent='Edit reward';
+  const del=document.createElement('button');del.type='button';del.textContent='Remove';del.className='remove';
+  del.onclick=()=>{const savers=students.filter(n=>savingsFor(n,r)>0);if(savers.length){alert('This reward has saved points for '+savers.join(', ')+'. Withdraw their savings before removing it.');return;}if(confirm('Remove '+r.name+' from the shop?')){rewards.splice(i,1);saveRewards();}};
+  edit.onclick=()=>{
+   const form=document.createElement('form');form.className='reward-edit-form';
+   const nameLabel=document.createElement('label');nameLabel.textContent='Reward name';
+   const nameInput=document.createElement('input');nameInput.type='text';nameInput.maxLength=80;nameInput.required=true;nameInput.value=r.name;
+   const costLabel=document.createElement('label');costLabel.textContent='Points required';
+   const costInput=document.createElement('input');costInput.type='number';costInput.min='1';costInput.max='9999';costInput.step='1';costInput.required=true;costInput.value=r.cost;
+   const descLabel=document.createElement('label');descLabel.textContent='Reward description (shown in the shop)';
+   const descInput=document.createElement('textarea');descInput.maxLength=300;descInput.required=true;descInput.rows=3;descInput.value=r.description;
+   const controls=document.createElement('div');controls.className='manage-actions';
+   const saveButton=document.createElement('button');saveButton.type='submit';saveButton.textContent='Save changes';saveButton.className='primary';
+   const cancelButton=document.createElement('button');cancelButton.type='button';cancelButton.textContent='Cancel';cancelButton.onclick=()=>renderSettings();
+   controls.append(saveButton,cancelButton);
+   for(const [lbl,input] of [[nameLabel,nameInput],[costLabel,costInput],[descLabel,descInput]]){lbl.append(input);form.append(lbl);}
+   form.append(controls);row.replaceChildren(form);nameInput.focus();
+   form.onsubmit=e=>{e.preventDefault();const n=nameInput.value.trim(),c=Number(costInput.value),d=descInput.value.trim();if(!n||!Number.isInteger(c)||c<1||c>9999||!d){alert('Enter a name, a point cost from 1 to 9999, and a description.');return;}if(students.some(student=>savingsFor(student,r)>c)){alert('This cost is below points already saved by a student. Withdraw the excess savings first.');return;}r.name=n;r.cost=c;r.description=d;saveRewards();};
+  };
+  actions.append(edit,del);row.append(label,actions);shop.append(row);
+ });
+}
+$('student-add-form').onsubmit=e=>{e.preventDefault();const n=$('student-new-name').value.trim();if(!n||students.some(x=>x.toLowerCase()===n.toLowerCase())){alert('Enter a unique student name.');return;}students.push(n);scores[n]=0;lastSavedScores={...scores};for(const a of assignments)a.statuses[n]='unchecked';$('student-new-name').value='';saveRoster();};
+$('reward-add-form').onsubmit=e=>{e.preventDefault();const n=$('reward-new-name').value.trim(),c=Number($('reward-new-cost').value),d=$('reward-new-desc').value.trim();if(!n||!Number.isInteger(c)||c<1||!d)return;rewards.push({name:n,cost:c,description:d});$('reward-add-form').reset();saveRewards();};
+
+// Music favorites are separate from classroom records, preserving existing score storage.
+const MUSIC_FAVORITES_KEY='bylow-music-favorites-v1';
+const musicDock=document.getElementById('music-dock');
+const musicFrame=document.getElementById('music-frame');
+const musicToggle=document.getElementById('music-toggle');
+const musicMinimize=document.getElementById('music-minimize');
+const musicStop=document.getElementById('music-stop');
+const musicUrl=document.getElementById('music-url');
+const musicTitle=document.getElementById('music-title');
+const musicFeedback=document.getElementById('music-feedback');
+let musicFavorites=[];
+try{const stored=JSON.parse(localStorage.getItem(MUSIC_FAVORITES_KEY)||'[]');if(Array.isArray(stored))musicFavorites=stored.filter(x=>x&&typeof x.title==='string'&&typeof x.url==='string').slice(0,40);}catch(e){}
+function musicEmbed(raw){
+  let u;try{u=new URL(raw.trim());}catch(e){return null;}
+  if(u.protocol!=='https:'&&u.protocol!=='http:')return null;
+  const h=u.hostname.toLowerCase().replace(/^www\./,'').replace(/^m\./,'');
+  if(h==='youtu.be'||h==='youtube.com'||h==='youtube-nocookie.com'){
+    const segments=u.pathname.split('/').filter(Boolean);
+    const id=h==='youtu.be'?segments[0]:segments[0]==='watch'?u.searchParams.get('v'):['live','shorts','embed'].includes(segments[0])?segments[1]:null;
+    const list=u.searchParams.get('list');
+    if(id&&/^[a-zA-Z0-9_-]{11}$/.test(id))return 'https://www.youtube-nocookie.com/embed/'+id+'?playsinline=1&autoplay=1'+(list&&/^[a-zA-Z0-9_-]{8,}$/.test(list)?'&list='+encodeURIComponent(list):'');
+    if(list&&/^[a-zA-Z0-9_-]{8,}$/.test(list))return 'https://www.youtube-nocookie.com/embed/videoseries?list='+encodeURIComponent(list)+'&autoplay=1';
+  }
+  if(h==='open.spotify.com'){
+    const parts=u.pathname.split('/').filter(Boolean);const index=parts[0]&&parts[0].startsWith('intl-')?1:0;
+    const type=parts[index],id=parts[index+1];
+    if(['track','album','playlist','episode','show'].includes(type)&&id&&/^[a-zA-Z0-9]{22}$/.test(id))return 'https://open.spotify.com/embed/'+type+'/'+id+'?utm_source=generator';
+  }
+  return null;
+}
+function musicMessage(msg){musicFeedback.textContent=msg;}
+function musicExpand(){
+  musicDock.hidden=false;musicDock.classList.remove('collapsed');
+  musicMinimize.textContent='Minimize';musicMinimize.setAttribute('aria-label','Minimize music player');musicToggle.setAttribute('aria-expanded','true');
+}
+function musicCollapse(){musicDock.classList.add('collapsed');musicMinimize.textContent='Expand';musicMinimize.setAttribute('aria-label','Expand music player');musicToggle.setAttribute('aria-expanded','false');}
+function musicPlay(url,title){
+  const embed=musicEmbed(url);
+  if(!embed){musicMessage('Please use a supported YouTube or Spotify video, playlist, or music link.');musicExpand();return false;}
+  musicUrl.value=url;musicFrame.src=embed;document.getElementById('music-label').textContent='🎵 '+(title||'Now playing');musicMessage('Loaded. Press play in the player if autoplay is blocked.');musicExpand();return true;
+}
+function renderMusicFavorites(){
+  const root=document.getElementById('music-favorites');root.replaceChildren();
+  if(!musicFavorites.length){const empty=document.createElement('span');empty.textContent='No saved favorites yet.';root.append(empty);return;}
+  for(const [i,item] of musicFavorites.entries()){
+    const row=document.createElement('div');row.className='music-favorite-row';
+    const play=document.createElement('button');play.type='button';play.className='music-favorite-play';play.textContent='▶ '+item.title;play.title=item.url;play.onclick=()=>musicPlay(item.url,item.title);
+    const del=document.createElement('button');del.type='button';del.textContent='Remove';del.setAttribute('aria-label','Remove '+item.title);del.onclick=()=>{musicFavorites.splice(i,1);saveMusicFavorites();renderMusicFavorites();};
+    row.append(play,del);root.append(row);
+  }
+}
+function saveMusicFavorites(){try{localStorage.setItem(MUSIC_FAVORITES_KEY,JSON.stringify(musicFavorites));}catch(e){musicMessage('Could not save favorites on this device.');}}
+document.getElementById('music-play').onclick=()=>musicPlay(musicUrl.value,musicTitle.value.trim());
+document.getElementById('music-save').onclick=()=>{
+  const url=musicUrl.value.trim();if(!musicEmbed(url)){musicMessage('Paste a supported YouTube or Spotify link first.');return;}
+  if(musicFavorites.length>=40){musicMessage('Maximum 40 favorites. Remove one before adding another.');return;}
+  const title=musicTitle.value.trim()||'Favorite '+(musicFavorites.length+1);
+  musicFavorites.push({title,url});saveMusicFavorites();renderMusicFavorites();musicMessage('Saved '+title+'.');musicTitle.value='';
+};
+musicToggle.addEventListener('click',()=>{if(musicDock.hidden||musicDock.classList.contains('collapsed'))musicExpand();else musicCollapse();});
+musicMinimize.addEventListener('click',()=>{if(musicDock.classList.contains('collapsed'))musicExpand();else musicCollapse();});
+musicStop.addEventListener('click',()=>{musicFrame.removeAttribute('src');musicDock.hidden=true;musicToggle.setAttribute('aria-expanded','false');musicMessage('');});
+renderMusicFavorites();
+
+// Separate, persistent audit trail; existing score and assignment keys are unchanged.
+const POINT_EVENTS_KEY=KEY+'-events-v1', YEAR_ARCHIVES_KEY=KEY+'-year-archives-v1';
+let pointEvents=[],yearArchives=[],pointChangeReason='',skipPointLog=false,lastSavedScores={...scores};
+function validPointEvent(e){return e&&typeof e.student==='string'&&Number.isFinite(e.delta)&&Number.isFinite(e.balance)&&typeof e.at==='string'&&typeof e.reason==='string';}
+try{const saved=JSON.parse(localStorage.getItem(POINT_EVENTS_KEY)||'[]');if(Array.isArray(saved))pointEvents=saved.filter(validPointEvent).slice(-5000);}catch(e){}
+try{const saved=JSON.parse(localStorage.getItem(YEAR_ARCHIVES_KEY)||'[]');if(Array.isArray(saved))yearArchives=saved.filter(a=>a&&typeof a.label==='string'&&a.data&&Array.isArray(a.data.students)).slice(-15);}catch(e){}
+function persistPointHistory(){try{localStorage.setItem(POINT_EVENTS_KEY,JSON.stringify(pointEvents));}catch(e){show('Point history storage is full. Export a backup.');}}
+function recordPointChanges(){
+ if(skipPointLog){lastSavedScores={...scores};skipPointLog=false;pointChangeReason='';return;}
+ const now=new Date().toISOString(),reason=pointChangeReason||'Point adjustment';
+ for(const student of students){const previous=lastSavedScores[student];const next=scores[student];if(Number.isFinite(previous)&&Number.isFinite(next)&&next!==previous)pointEvents.push({at:now,student,delta:next-previous,balance:next,reason});}
+ if(pointEvents.length>5000)pointEvents=pointEvents.slice(-5000);
+ lastSavedScores={...scores};pointChangeReason='';persistPointHistory();
+}
+$('point-search').addEventListener('input',draw);
+function updateHistorySelector(){const el=$('history-student'),selected=el.value;el.replaceChildren(new Option('All students',''));for(const name of [...students].sort((a,b)=>a.localeCompare(b)))el.add(new Option(name,name));if(students.includes(selected))el.value=selected;}
+function renderPointHistory(){updateHistorySelector();const student=$('history-student').value;const entries=pointEvents.filter(e=>!student||e.student===student).slice().reverse();const target=$('history-list');target.replaceChildren();if(!entries.length){target.textContent='No recorded point changes yet. New changes will appear here.';return;}for(const e of entries.slice(0,250)){const row=document.createElement('div');row.className='history-item';const detail=document.createElement('div');const name=document.createElement('strong');name.textContent=e.student+' · '+e.reason;const date=document.createElement('small');date.textContent=' '+new Date(e.at).toLocaleString();detail.append(name,document.createElement('br'),date);const amount=document.createElement('span');amount.className='history-delta '+(e.delta>=0?'positive':'negative');amount.textContent=(e.delta>0?'+':'')+e.delta+' → '+e.balance+' pts';row.append(detail,amount);target.append(row);}if(entries.length>250){const note=document.createElement('p');note.textContent='Showing latest 250 entries. Export CSV for the complete history.';target.append(note);}}
+$('history-student').onchange=renderPointHistory;
+function downloadFile(name,contents,type){const blob=new Blob([contents],{type});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}
+$('history-export').onclick=()=>{const selected=$('history-student').value;const rows=pointEvents.filter(e=>!selected||e.student===selected);const csv=[['Date','Student','Change','Balance','Reason'],...rows.map(e=>[e.at,e.student,e.delta,e.balance,e.reason])].map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');downloadFile('classroom-point-history.csv',csv,'text/csv;charset=utf-8');};
+$('picker-go').onclick=pickStudent;$('picker-again').onclick=pickStudent;
+function pickStudent(){const q=$('picker-search').value.trim().toLocaleLowerCase();const eligible=students.filter(n=>n.toLocaleLowerCase().includes(q));if(!eligible.length){$('picker-result').textContent='No matching students';return;}const values=new Uint32Array(1);if(window.crypto?.getRandomValues)crypto.getRandomValues(values);else values[0]=Math.floor(Math.random()*4294967296);$('picker-result').textContent=eligible[values[0]%eligible.length];}
+function currentYearData(label){const snapshot={version:4,created:new Date().toISOString(),schoolYear:label,students:[...students],classNumbers:{...classNumbers},scores:{...scores},assignments:JSON.parse(JSON.stringify(assignments)),rewards:JSON.parse(JSON.stringify(rewards)),pointHistory:JSON.parse(JSON.stringify(pointEvents)),rewardSavings:JSON.parse(JSON.stringify(rewardSavings)),interestState:JSON.parse(JSON.stringify(interestState)),marketState:JSON.parse(JSON.stringify(marketState))};if(typeof classroomIdentity!=='undefined'&&classroomIdentity)snapshot.classroom={...classroomIdentity};return snapshot;}
+function archiveName(label){return 'classroom-year-'+label.replace(/[^a-zA-Z0-9-]/g,'-').replace(/-+/g,'-')+'.json';}
+function saveArchive(label){const data=currentYearData(label),archive={id:String(Date.now())+'-'+Math.random().toString(36).slice(2),label,created:data.created,data};const updated=[archive,...yearArchives].slice(0,15);try{localStorage.setItem(YEAR_ARCHIVES_KEY,JSON.stringify(updated));yearArchives=updated;}catch(e){alert('Not enough browser storage to keep an archive on this device. A download will still be created. Save it somewhere safe.');}downloadFile(archiveName(label),JSON.stringify(data,null,2),'application/json');renderArchives();return archive;}
+function renderArchives(){const target=$('archive-list');target.replaceChildren();if(!yearArchives.length){const empty=document.createElement('p');empty.textContent='No locally saved school years yet.';target.append(empty);return;}for(const archive of yearArchives){const row=document.createElement('div');row.className='history-item';const detail=document.createElement('div');const label=document.createElement('strong');label.textContent=archive.label;const meta=document.createElement('small');meta.textContent=' '+new Date(archive.created).toLocaleDateString()+' · '+archive.data.students.length+' students';detail.append(label,document.createElement('br'),meta);const controls=document.createElement('div');const dl=document.createElement('button');dl.textContent='Download';dl.onclick=()=>downloadFile(archiveName(archive.label),JSON.stringify(archive.data,null,2),'application/json');const restore=document.createElement('button');restore.textContent='Restore';restore.onclick=()=>{if(!confirm('Restore this school year? This replaces the current classroom data. Download a current backup first.'))return;restoreYear(archive.data);};controls.append(dl,restore);row.append(detail,controls);target.append(row);}}
+function restoreYear(data){if(!Array.isArray(data.students)||!data.students.length||!data.scores||!Array.isArray(data.assignments))return alert('Archive is invalid.');const roster=data.students.filter(n=>typeof n==='string'&&n.trim());if(roster.length!==data.students.length||roster.some(n=>!Number.isFinite(data.scores[n])))return alert('Archive contains invalid scores.');students=roster;classNumbers=data.classNumbers&&typeof data.classNumbers==='object'?{...data.classNumbers}:{};ensureClassNumbers();scores=Object.fromEntries(roster.map(n=>[n,Math.floor(data.scores[n])]));history=[];skipPointLog=true;localStorage.setItem(ROSTER_KEY,JSON.stringify(students));if(Array.isArray(data.rewards)){rewards=data.rewards.filter(r=>r&&typeof r.name==='string'&&Number.isFinite(r.cost)&&typeof r.description==='string');localStorage.setItem(REWARDS_KEY,JSON.stringify(rewards));}ensureRewardIds();resetSavingsFromData(data.rewardSavings);saveInterestState(sanitizeInterestState(data.interestState));saveMarketState(cleanMarket(data.marketState));assignments=validateAssignments(data.assignments);pointEvents=Array.isArray(data.pointHistory)?data.pointHistory.filter(validPointEvent).slice(-5000):[];persistPointHistory();save();saveAssignments();updateStudentSelectors();draw();renderAssignments();renderShop();renderSettings();renderArchives();if(data.classroom&&typeof saveClassroomIdentity==='function'&&typeof data.classroom.teacher==='string')saveClassroomIdentity(data.classroom.teacher,data.classroom.classroom);show('School year restored');}
+$('archive-save').onclick=()=>{const label=$('archive-label').value.trim();if(!label)return alert('Enter a school-year label first.');saveArchive(label);show('Archive saved and downloaded');};
+$('year-reset').onclick=()=>{const label=$('archive-label').value.trim();if(!label)return alert('Enter a school-year label (for example 2026-2027) first.');if(!confirm('Archive '+label+' and START A NEW YEAR? Scores, assignments, and point history will be cleared. Student names and rewards will remain until you edit them.'))return;saveArchive(label);if(!confirm('The archive download should have started. Confirm once more to clear the current year. Cancel if you have not saved the downloaded file.'))return;scores=Object.fromEntries(students.map(n=>[n,0]));assignments=[];selectedAssignment=null;history=[];pointEvents=[];resetSavingsFromData({});saveInterestState(sanitizeInterestState(null));saveMarketState(cleanMarket(null));persistPointHistory();skipPointLog=true;save();saveAssignments();draw();renderAssignments();renderShop();renderArchives();show('New school year started. Update student names in Settings.');};
+
+
+// BSX: independent fictional market. Uses the same local-only storage as the personal dashboard.
+const BSX_KEY=KEY+'-bsx-market-v1';
+const BSX_COMPANIES=[
+ {id:'PNCL',name:'Pencil Industries',price:10,risk:'Low',min:-3,max:3,news:['A new never-dull pencil excites students.','A shipment of pencils arrives without erasers.','Teachers order fresh classroom supplies.']},
+ {id:'ERAS',name:'Eraser Enterprises',price:8,risk:'Low',min:-3,max:3,news:['The company unveils an extra-large eraser.','A mysterious eraser shortage hits classrooms.','Students vote for colorful erasers.']},
+ {id:'BOOK',name:'Bookworm Publishing',price:12,risk:'Low',min:-3,max:3,news:['A new mystery novel becomes a classroom favorite.','A printing press needs repairs.','The school library announces a reading challenge.']},
+ {id:'SNCK',name:'Snack Attack Inc.',price:15,risk:'Medium',min:-8,max:8,news:['A new snack flavor gets mixed reviews.','Cafeteria taste tests draw huge crowds.','A broccoli-cookie experiment goes poorly.']},
+ {id:'TECH',name:'Tablet Technologies',price:20,risk:'Medium',min:-8,max:8,news:['A classroom app update is released.','A software bug makes every icon upside down.','Students discover a useful new learning feature.']},
+ {id:'GYMX',name:'Gym Class Gear',price:10,risk:'Medium',min:-8,max:8,news:['A new dodgeball design is announced.','The company accidentally ships left shoes only.','PE classes order new sports equipment.']},
+ {id:'ARTZ',name:'Creative Colors Co.',price:12,risk:'Medium',min:-8,max:8,news:['A rainbow-colored pencil sells out.','A shipment contains only gray crayons.','A student art show inspires big orders.']},
+ {id:'JOE',name:'Joe Mama Industries',price:10,risk:'Extreme',min:-30,max:40,news:['JOE invents homework that allegedly does itself.','Nobody can explain what Joe Mama Industries sells.','JOE spokesperson says: Trust us, bro.','Investors discover the headquarters is a cardboard box.','JOE announces a top-secret product called The Thing.']}
+];
+function newMarket(){return {week:'',day:0,closed:false,prices:Object.fromEntries(BSX_COMPANIES.map(c=>[c.id,c.price])),holdings:{},events:[],settledWeeks:{}};}
+function cleanMarket(data){const base=newMarket();if(!data||typeof data!=='object')return base;const prices={...base.prices};for(const c of BSX_COMPANIES){const v=Number(data.prices?.[c.id]);if(Number.isFinite(v)&&v>=0.01&&v<100000)prices[c.id]=v;}
+ const holdings={};if(data.holdings&&typeof data.holdings==='object')for(const [student,items] of Object.entries(data.holdings)){if(!Array.isArray(items))continue;holdings[student]=items.filter(x=>x&&BSX_COMPANIES.some(c=>c.id===x.id)&&Number.isFinite(x.invested)&&x.invested>0&&Number.isFinite(x.units)&&x.units>0).slice(0,8).map(x=>({id:x.id,invested:x.invested,units:x.units}));}
+ return {week:typeof data.week==='string'?data.week:'',day:Number.isInteger(data.day)?Math.max(0,Math.min(3,data.day)):0,closed:!!data.closed,prices,holdings,events:Array.isArray(data.events)?data.events.slice(-150):[],settledWeeks:data.settledWeeks&&typeof data.settledWeeks==='object'?data.settledWeeks:{}};}
+let marketState;try{marketState=cleanMarket(JSON.parse(localStorage.getItem(BSX_KEY)||'null'));}catch(e){marketState=newMarket();}
+function saveMarketState(next){try{localStorage.setItem(BSX_KEY,JSON.stringify(next));marketState=next;return true;}catch(e){alert('Market storage failed. No market change was saved. Export a backup.');return false;}}
+function marketWeek(){const d=new Date();const monday=new Date(d.getFullYear(),d.getMonth(),d.getDate());monday.setDate(monday.getDate()-(monday.getDay()+6)%7);return [monday.getFullYear(),String(monday.getMonth()+1).padStart(2,'0'),String(monday.getDate()).padStart(2,'0')].join('-');}
+function marketRandom(){const a=new Uint32Array(1);if(crypto?.getRandomValues)crypto.getRandomValues(a);else a[0]=Math.floor(Math.random()*4294967296);return a[0]/4294967296;}
+function marketInvested(student){return (marketState.holdings[student]||[]).reduce((sum,h)=>sum+h.invested,0);}
+function marketValue(h){return Math.round(h.units*marketState.prices[h.id]);}
+function marketBuy(student,id,amount){if(!marketState.week||marketState.day!==0||marketState.closed)return alert('Purchases are only available before the first market update.');if(!students.includes(student)||!BSX_COMPANIES.some(c=>c.id===id))return;
+ if(!Number.isSafeInteger(amount)||amount<10||amount>25||marketInvested(student)+amount>25||scores[student]<amount)return alert('Invest 10–25 available points per purchase, up to 25 points total per week.');
+ if(!confirm(student+' invests '+amount+' points in '+id+'? These points can lose value and are locked until Friday settlement.'))return;
+ const next=structuredClone(marketState),list=next.holdings[student]||(next.holdings[student]=[]),existing=list.find(x=>x.id===id);const units=amount/next.prices[id];if(existing){existing.invested+=amount;existing.units+=units;}else list.push({id,invested:amount,units});
+ next.events.push({at:new Date().toISOString(),message:student+' invested '+amount+' points in '+id});if(!saveMarketState(next))return;
+ history=[];pointChangeReason='BSX investment: '+id;scores[student]-=amount;save();draw();renderMarket();renderShop();show(student+' invested '+amount+' points.');}
+function marketStart(){const week=marketWeek();if(marketState.week===week)return alert('This market week has already started.');if(marketState.week&&!marketState.closed)return alert('Settle the previous market before starting another week.');if(marketState.settledWeeks[week])return alert('The market was already settled this calendar week.');
+ if(!confirm('Open a fresh market for the week of '+week+'? All company prices reset to their opening prices.'))return;
+ const next=newMarket();next.week=week;next.settledWeeks={...marketState.settledWeeks};next.events=[{at:new Date().toISOString(),message:'Market opened for '+week}];if(saveMarketState(next))renderMarket();}
+function marketAdvance(){if(!marketState.week||marketState.closed||marketState.day>=3)return;const dayNames=['Tuesday','Wednesday','Thursday'];const day=dayNames[marketState.day];if(!confirm('Advance to '+day+'? Prices will change for every student.'))return;
+ const next=structuredClone(marketState);next.day++;next.events.push({at:new Date().toISOString(),message:'— '+day+' market report —'});
+ for(const c of BSX_COMPANIES){let pct=c.min+marketRandom()*(c.max-c.min);if(c.id==='JOE'&&marketRandom()<.10)pct=marketRandom()<.5?-45:65;const old=next.prices[c.id];next.prices[c.id]=Math.max(.01,Math.round(old*(1+pct/100)*100)/100);const actual=((next.prices[c.id]/old)-1)*100;const headline=c.news[Math.floor(marketRandom()*c.news.length)];next.events.push({at:new Date().toISOString(),message:c.id+' '+(actual>=0?'+':'')+actual.toFixed(1)+'% · '+headline});}
+ next.events=next.events.slice(-150);if(saveMarketState(next))renderMarket();}
+function marketSettle(){if(!marketState.week||marketState.closed||marketState.day!==3)return alert('Advance through Thursday before settling Friday.');if(marketState.settledWeeks[marketState.week])return alert('Already settled this week.');const payouts=students.map(n=>({student:n,invested:marketInvested(n),payout:(marketState.holdings[n]||[]).reduce((sum,h)=>sum+marketValue(h),0)})).filter(x=>x.invested>0);const total=payouts.reduce((sum,x)=>sum+x.payout,0);if(!confirm('Friday settlement: return '+total+' points to '+payouts.length+' investors? This cannot be undone with the regular Undo button.'))return;
+ const next=structuredClone(marketState);next.closed=true;next.settledWeeks[next.week]={at:new Date().toISOString(),investors:payouts.length,total};next.events.push({at:new Date().toISOString(),message:'Friday settlement completed: '+payouts.length+' investors received '+total+' points'});next.events=next.events.slice(-150);
+ if(!saveMarketState(next))return;history=[];pointChangeReason='BSX Friday settlement';for(const x of payouts)scores[x.student]+=x.payout;save();draw();renderShop();renderMarket();show('Market settled: '+total+' points paid.');}
+function bsxEl(tag,txt,cls){const e=document.createElement(tag);if(txt!==undefined)e.textContent=txt;if(cls)e.className=cls;return e;}
+function renderMarket(){const root=$('bsx-content');if(!root)return;root.replaceChildren();const active=!!marketState.week;const current=marketWeek();const status=bsxEl('section',undefined,'bsx-panel');status.append(bsxEl('h3','🏛 Market Control Center'),bsxEl('p',!active?'Market not yet opened.':marketState.closed?'Market settled for '+marketState.week:marketState.week+' · '+['Monday — buying open','Tuesday — buying closed','Wednesday — buying closed','Thursday — ready for Friday settlement'][marketState.day]));
+ const actions=bsxEl('div',undefined,'bsx-controls');const start=bsxEl('button','Open New Week');start.disabled=(active&&!marketState.closed)||marketState.week===current||!!marketState.settledWeeks[current];start.onclick=marketStart;const advance=bsxEl('button','📊 Advance Market Day');advance.disabled=!active||marketState.closed||marketState.day>=3;advance.onclick=marketAdvance;const settle=bsxEl('button','💰 Friday: Close & Settle');settle.disabled=!active||marketState.closed||marketState.day!==3;settle.onclick=marketSettle;actions.append(start,advance,settle);status.append(actions,bsxEl('p','Teacher controls only. Opening a new week resets prices; earlier settlements stay in the market log. Market days advance manually, not automatically.'));root.append(status);
+ const selectBox=bsxEl('section',undefined,'bsx-panel');selectBox.append(bsxEl('h3','Student Portfolio & Buy Shares'));const controls=bsxEl('div',undefined,'bsx-controls');const studentSelect=document.createElement('select');studentSelect.setAttribute('aria-label','Investor');for(const n of students)studentSelect.add(new Option(n,n));if(students.includes(renderMarket.selected))studentSelect.value=renderMarket.selected;const companySelect=document.createElement('select');companySelect.setAttribute('aria-label','Company');for(const c of BSX_COMPANIES)companySelect.add(new Option(c.name+' ('+c.id+')',c.id));const amount=document.createElement('input');amount.type='number';amount.min='10';amount.max='25';amount.step='1';amount.value='10';amount.setAttribute('aria-label','Points to invest');const buy=bsxEl('button','Invest points');buy.disabled=!active||marketState.day!==0||marketState.closed;buy.onclick=()=>marketBuy(studentSelect.value,companySelect.value,Number(amount.value));studentSelect.onchange=()=>{renderMarket.selected=studentSelect.value;renderMarket();};controls.append(studentSelect,companySelect,amount,buy);selectBox.append(controls);
+ const n=studentSelect.value;const invested=marketInvested(n);selectBox.append(bsxEl('p',n+': '+(scores[n]??0)+' available · '+invested+'/25 invested this week · '+bankFor(n)+' protected savings. Minimum purchase: 10 points.'));const holdings=marketState.holdings[n]||[];if(holdings.length){for(const h of holdings){const value=marketValue(h),gain=value-h.invested;selectBox.append(bsxEl('p',h.id+' · Invested '+h.invested+' · Current value '+value+' · '+(gain>=0?'+':'')+gain+' points',gain>=0?'bsx-up':'bsx-down'));}}else selectBox.append(bsxEl('p','No investments this week.'));root.append(selectBox);
+ const grid=bsxEl('div',undefined,'bsx-grid');for(const c of BSX_COMPANIES){const card=bsxEl('article',undefined,'bsx-company');card.append(bsxEl('h3',c.name),bsxEl('p',c.id+' · '+(c.id==='JOE'?'EXTREME':c.risk)+' risk','risk'),bsxEl('p','Opening price: '+c.price.toFixed(2)+' pts / share'),bsxEl('p','Current price: '+marketState.prices[c.id].toFixed(2)+' pts / share'));if(c.id==='JOE')card.append(bsxEl('p','Nobody knows what Joe makes. Huge gains or losses are possible.'));grid.append(card);}root.append(grid);
+ const log=bsxEl('section',undefined,'bsx-panel');log.append(bsxEl('h3','📰 Market News & Activity'));const entries=bsxEl('div',undefined,'bsx-log');for(const e of marketState.events.slice(-45).reverse())entries.append(bsxEl('div',e.message));if(!marketState.events.length)entries.append(bsxEl('p','Open the market to begin.'));log.append(entries);root.append(log);
+}
+
+</script><script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));}</script></body></html>
