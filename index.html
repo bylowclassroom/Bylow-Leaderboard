@@ -150,18 +150,20 @@ button.danger{background:#482a32;border-color:#79414d;color:#ffdce1}
 .general-bank{background:linear-gradient(120deg,#152a35,#172337);border:1px solid #4a7d85;border-radius:15px;padding:18px;margin:0 0 18px}.general-bank h3{margin:0 0 8px;font-size:21px}.general-bank p{margin:5px 0 12px;color:#b9d7e9;font-size:14px}.general-bank .bank-total{font-size:27px;font-weight:850;color:#a8f0ce}.general-bank .bank-controls{display:flex;align-items:center;flex-wrap:wrap;gap:9px}.general-bank input{width:94px;padding:10px;border:1px solid #647a91;border-radius:8px;background:#0c1725;color:white}.general-bank button{padding:10px 12px}.general-bank button:disabled{opacity:.45}.general-bank .bank-tip{font-size:12px;color:#a6c2ce;margin-top:10px}.savings-progress{height:10px;border-radius:99px;background:#24354b;overflow:hidden;margin:8px 0}.savings-progress>div{height:100%;background:#6ed5a0;border-radius:99px}
 .savings-note{font-size:12px;color:#b9d7e9;margin:5px 0}.savings-actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:9px}.savings-actions input{width:78px;min-width:0;background:#101c2a;color:#fff;border:1px solid #61758b;border-radius:7px;padding:8px}.savings-actions button{padding:8px 10px;border-radius:8px}.savings-actions button:disabled{opacity:.45}
 
-/* Large classroom-display point announcements; visual only, no saved data changes. */
-.point-announcement{position:fixed;inset:0;z-index:9998;display:flex;align-items:center;justify-content:center;pointer-events:none;padding:20px;animation:point-veil 1.65s ease-out forwards}
-.point-announcement-card{min-width:min(620px,90vw);max-width:94vw;padding:clamp(22px,5vw,52px);border-radius:30px;text-align:center;color:white;border:3px solid rgba(255,255,255,.5);box-shadow:0 18px 70px rgba(0,0,0,.48);animation:point-arrive .55s cubic-bezier(.2,1.5,.4,1) both}
-.point-announcement.plus .point-announcement-card{background:linear-gradient(135deg,#0b8f63,#22bd79)}
-.point-announcement.minus .point-announcement-card{background:linear-gradient(135deg,#9b3346,#d85664)}
-.point-announcement.big .point-announcement-card{background:linear-gradient(135deg,#7251c8,#d5a12b);box-shadow:0 18px 80px rgba(213,161,43,.4)}
-.point-announcement-name{font-weight:900;font-size:clamp(35px,7vw,86px);line-height:1.08;overflow-wrap:anywhere;text-shadow:0 3px 8px rgba(0,0,0,.2)}
-.point-announcement-score{font-weight:950;font-size:clamp(65px,13vw,160px);line-height:1.05;text-shadow:0 5px 12px rgba(0,0,0,.25)}
-.point-announcement-caption{font-size:clamp(16px,2.7vw,30px);font-weight:750;letter-spacing:.08em;text-transform:uppercase}
-@keyframes point-arrive{0%{transform:scale(.45) translateY(70px);opacity:0}70%{transform:scale(1.07);opacity:1}100%{transform:scale(1);opacity:1}}
-@keyframes point-veil{0%,70%{opacity:1}100%{opacity:0}}
-@media(prefers-reduced-motion:reduce){.point-announcement,.point-announcement-card{animation-duration:.1s}}
+/* Compact announcement occupies the coin banner ABOVE the student grid, never covers student buttons. */
+.bylow-coin-brand{position:relative;width:calc(100% - 40px);max-width:none;min-height:106px;overflow:hidden;justify-content:center;margin:14px 20px 8px}
+.point-announcement{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;pointer-events:none;padding:5px 12px;animation:point-veil 1.15s ease-out forwards}
+.point-announcement-card{width:100%;height:100%;display:flex;align-items:center;justify-content:center;gap:clamp(12px,3vw,42px);padding:8px 20px;border-radius:16px;color:white;border:2px solid rgba(255,255,255,.4);box-shadow:0 6px 24px #0006;animation:point-arrive .28s ease-out both}
+.point-announcement.plus .point-announcement-card{background:linear-gradient(110deg,#0b7854,#1cb779)}
+.point-announcement.minus .point-announcement-card{background:linear-gradient(110deg,#913344,#d85664)}
+.point-announcement.big .point-announcement-card{background:linear-gradient(110deg,#7251c8,#bd8b25)}
+.point-announcement-name{font-weight:900;font-size:clamp(23px,3.5vw,46px);line-height:1.1;overflow-wrap:anywhere;text-shadow:0 2px 6px #0003}
+.point-announcement-score{font-weight:950;font-size:clamp(34px,5vw,66px);line-height:1;white-space:nowrap;text-shadow:0 3px 8px #0003}
+.point-announcement-caption{font-size:clamp(11px,1.5vw,19px);font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+@keyframes point-arrive{0%{transform:translateY(12px) scale(.96);opacity:0}100%{transform:translateY(0) scale(1);opacity:1}}
+@keyframes point-veil{0%,76%{opacity:1}100%{opacity:0}}
+@media(max-width:600px){.bylow-coin-brand{width:calc(100% - 24px);margin-left:12px;margin-right:12px;min-height:90px}.point-announcement-card{gap:9px;padding:7px}.point-announcement-caption{display:none}}
+@media(prefers-reduced-motion:reduce){.point-announcement,.point-announcement-card{animation:none}}
 
 .sound-settings{margin-top:18px}.sound-settings-grid{display:grid;gap:12px}.sound-setting-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px;border:1px solid #344355;border-radius:10px}.sound-setting-row strong{min-width:145px}.sound-setting-row input{max-width:100%;font-size:13px}.sound-setting-row button{padding:8px 11px}.sound-setting-row small{flex-basis:100%;color:#a9b6c8}.sound-setting-note{color:#a9b6c8;font-size:13px;line-height:1.5}
 
@@ -406,9 +408,11 @@ function showPointAnnouncement(name,delta){
  const who=document.createElement('div');who.className='point-announcement-name';who.textContent=name;
  const amount=document.createElement('div');amount.className='point-announcement-score';amount.textContent=(delta>0?'+':'')+delta;
  const caption=document.createElement('div');caption.className='point-announcement-caption';
- caption.textContent=delta>=5?'★ Amazing work! ★':delta>0?'Coins earned!':'Point deducted';
- card.append(who,amount,caption);layer.append(card);document.body.append(layer);
- pointAnnouncementTimer=setTimeout(()=>layer.remove(),1650);
+ caption.textContent=delta>=5?'★ Amazing work! ★':delta>0?'Coins earned!':'Coin deducted';
+ card.append(who,amount,caption);layer.append(card);
+ const banner=document.getElementById('bylow-coin-brand');
+ (banner||document.body).append(layer);
+ pointAnnouncementTimer=setTimeout(()=>layer.remove(),1150);
 }
 function celebrate(name,delta){
  showPointAnnouncement(name,delta);
